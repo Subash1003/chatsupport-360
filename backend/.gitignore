@@ -1,0 +1,13 @@
+node_modules/
+
+# Secrets — keep .env out, keep the template in
+.env
+.env.*
+!.env.example
+
+# Logs & scratch
+*.log
+npm-debug.log*
+tests/.e2e-*
+
+.DS_Store
