@@ -26,6 +26,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import AccountPage from './pages/AccountPage.jsx';
 import ProjectsPage from './pages/ProjectsPage.jsx';
 import ProjectDetailPage from './pages/ProjectDetailPage.jsx';
+import AdminLoginPage from './pages/AdminLoginPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 
 function Footer() {
   return (
@@ -122,6 +124,10 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Admin console — its own token, self-guarded inside AdminPage. */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

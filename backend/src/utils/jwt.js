@@ -24,6 +24,16 @@ export function signToken({ customer_id, email }) {
 }
 
 /**
+ * Sign an ADMIN token. Payload carries `role: 'admin'` (no customer_id), so
+ * customer routes reject it and admin.middleware.js accepts it.
+ */
+export function signAdminToken(email) {
+  return jwt.sign({ role: 'admin', email }, env.JWT_SECRET, {
+    expiresIn: env.JWT_EXPIRES_IN,
+  });
+}
+
+/**
  * Verify a token. Throws on a bad or expired token:
  *   - expired  -> error.name === 'TokenExpiredError'
  *   - anything else (bad signature, malformed) -> 'JsonWebTokenError'

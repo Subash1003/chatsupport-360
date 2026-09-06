@@ -162,6 +162,11 @@ export default function SignupPage() {
         <p className="auth-alt">
           <Link to="/login">Already have an account? Sign in</Link>
         </p>
+        <p className="auth-alt" style={{ marginTop: 8 }}>
+          <Link to="/admin/login" className="btn btn-ghost btn-sm">
+            Admin login
+          </Link>
+        </p>
       </div>
     </div>
   );

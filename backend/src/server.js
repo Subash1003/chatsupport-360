@@ -27,6 +27,7 @@ import customerRoutes from './routes/customer.routes.js';
 import ingestRoutes from './routes/ingest.routes.js';
 import chatRoutes from './routes/chat.routes.js';
 import leadRoutes from './routes/lead.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import {
   globalLimiter,
   authLimiter,
@@ -129,6 +130,7 @@ app.use('/api/customer', rejectClientCustomerId, customerRoutes);
 app.use('/api/ingest', ingestRoutes);
 app.use('/api/chat', chatLimiter, rejectClientCustomerId, chatRoutes);
 app.use('/api/leads', leadsLimiter, leadRoutes); // Phase 11: public lead capture
+app.use('/api/admin', adminRoutes); // admin console (own token)
 
 // A friendly root response, so hitting http://localhost:5000/ is not a 404.
 app.get('/', (req, res) => {
@@ -143,6 +145,7 @@ app.get('/', (req, res) => {
       ingest: '/api/ingest',
       chat: '/api/chat',
       leads: '/api/leads',
+      admin: '/api/admin',
     },
   });
 });

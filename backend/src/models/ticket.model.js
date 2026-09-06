@@ -42,3 +42,27 @@ export async function createTicket(customerId, { subject, description, priority 
   );
   return result.insertId;
 }
+
+// --- admin ---------------------------------------------------------------
+
+/** Every ticket across all customers, open ones first, newest first. */
+export function listAllTickets() {
+  return query(
+    `SELECT t.ticket_id, t.subject, t.description, t.status, t.priority,
+            t.created_at, t.updated_at,
+            t.customer_id, c.name AS customer_name, c.email AS customer_email
+       FROM support_tickets t
+       JOIN customers c ON c.customer_id = t.customer_id
+      ORDER BY (t.status IN ('resolved', 'closed')) ASC,
+               t.created_at DESC, t.ticket_id DESC`
+  );
+}
+
+/** Mark a ticket resolved. Returns true if a row changed. */
+export async function markTicketResolved(ticketId) {
+  const r = await query(
+    `UPDATE support_tickets SET status = 'resolved' WHERE ticket_id = ?`,
+    [ticketId]
+  );
+  return r.affectedRows > 0;
+}

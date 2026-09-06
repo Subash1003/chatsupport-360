@@ -357,6 +357,7 @@ code {
 }
 .btn:hover:not(:disabled) {
   background: var(--brand-2);
+  color: #fff; /* keep label white on hover (beats the global a:hover colour) */
 }
 .btn:active:not(:disabled) {
   transform: translateY(1px);
@@ -1100,7 +1101,11 @@ textarea.field-control {
   line-height: 1.5;
   resize: none;
   outline: none;
+  scrollbar-width: none; /* hide the scrollbar (still scrolls past max-height) */
   transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.chat-input-box::-webkit-scrollbar {
+  display: none;
 }
 .chat-input-box::placeholder {
   color: var(--text-faint);

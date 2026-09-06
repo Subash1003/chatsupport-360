@@ -37,6 +37,12 @@ export default function ProjectsPage() {
 
   return (
     <div className="page">
+      <div style={{ marginBottom: 16 }}>
+        <Link to="/account" className="btn btn-ghost btn-sm">
+          <Icon name="arrow-left" size={13} /> Back to account
+        </Link>
+      </div>
+
       <div className="page-intro">
         <h1>Your projects</h1>
       </div>

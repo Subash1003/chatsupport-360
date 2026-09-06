@@ -134,6 +134,10 @@ export const env = {
   // no extra API call. Set to 'false' to turn the chips off.
   CHAT_FOLLOWUPS: readEnv('CHAT_FOLLOWUPS', { fallback: 'true' }) !== 'false',
 
+  // Admin console login (single hard-coded operator account). Change in .env.
+  ADMIN_EMAIL: readEnv('ADMIN_EMAIL', { fallback: 'Admin360@gmail.com' }),
+  ADMIN_PASSWORD: readEnv('ADMIN_PASSWORD', { fallback: 'Admin@360' }),
+
   // Phase 10 values - conversation memory
   // HISTORY_MAX_MESSAGES: how many prior user/bot messages to replay to the LLM
   // (10 ~= 5 turns). HISTORY_MAX_CHARS: per-message truncation, keeps tokens bounded.
