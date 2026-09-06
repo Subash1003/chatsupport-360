@@ -3,10 +3,10 @@
 //
 // Signup / login / password-reset business logic. No req/res in here.
 //
-// Signup is the 3-step flow from spec §8:
-//   1. requestSignupOtp(email)        -> POST /api/auth/send-otp
-//   2. verifyOtp(email, otp, purpose) -> POST /api/auth/verify-otp
-//   3. completeSignup({...})          -> POST /api/auth/signup
+// Signup is a single step: completeSignup({...}) -> POST /api/auth/signup.
+// The spec.md §8 email-OTP steps are bypassed because the deployment host
+// blocks outbound SMTP (see completeSignup below). requestSignupOtp /
+// verifyOtp are kept for API compatibility but are no longer on the path.
 //
 // Password reset is 2 steps (spec §8): forgot-password issues the code,
 // reset-password verifies AND consumes it in one call. Do NOT pre-call
@@ -44,16 +44,21 @@ export async function verifyOtp(email, otp, purpose) {
   await otpService.consumeOtp(email, purpose, otp);
 }
 
-/** Step 3: create the account, but only if the email was verified in step 2. */
+/**
+ * Create the account directly from name + email + password.
+ *
+ * NOTE: email-ownership verification (the send-otp / verify-otp steps) is
+ * intentionally NOT enforced here. The deployment host blocks outbound SMTP,
+ * so OTP email cannot be delivered; signup would otherwise be impossible.
+ * Trade-off: a user can register with an email they do not control.
+ * (Deviates from spec.md §8 - see the note there.)
+ */
 export async function completeSignup({ name, email, password }) {
   // Duplicate check first, so a second signup attempt for a taken email always
-  // returns EMAIL_EXISTS (not OTP_NOT_VERIFIED, once the first signup cleared
-  // the OTP rows). Consistent with /send-otp, which already 409s for this case.
+  // returns EMAIL_EXISTS. Consistent with /send-otp, which also 409s here.
   if (await customerModel.emailExists(email)) {
     throw httpError(409, 'EMAIL_EXISTS', 'That email is already registered.');
   }
-
-  await otpService.assertEmailVerifiedForSignup(email);
 
   const passwordHash = await hashPassword(password);
 
@@ -67,8 +72,6 @@ export async function completeSignup({ name, email, password }) {
     }
     throw err;
   }
-
-  await otpService.clearOtps(email, 'signup');
 
   const token = signToken({ customer_id: customerId, email });
   return { customer_id: customerId, email, name, token };
