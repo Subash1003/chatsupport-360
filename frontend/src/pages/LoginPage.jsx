@@ -54,6 +54,20 @@ export default function LoginPage() {
 
         {flash && <p className="form-notice">{flash}</p>}
 
+        <div className="demo-note">
+          <h2>Demo Version</h2>
+          <p>
+            This is a demo version of the application. Use the following demo user
+            credentials to log in and access the Account page and view projects.
+          </p>
+          <dl>
+            <dt>Email</dt>
+            <dd>subashv2003.10@gmail.com</dd>
+            <dt>Password</dt>
+            <dd>Password123!</dd>
+          </dl>
+        </div>
+
         <form onSubmit={onSubmit}>
           <FormField
             label="Email"
