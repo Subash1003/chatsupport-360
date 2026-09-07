@@ -1,8 +1,9 @@
 // -----------------------------------------------------------------------------
 // AdminPage.jsx
 //
-// Admin-only. Lists every support ticket across all customers. "Resolve" (with
-// a confirm) sets a ticket's status to resolved via PATCH /api/admin/tickets/:id/resolve.
+// Admin-only. Lists every support ticket across all customers. "View" opens a
+// modal with the full ticket detail; "Resolve" (with a confirm) sets a ticket's
+// status to resolved via PATCH /api/admin/tickets/:id/resolve.
 // Self-guards on the admin token (no customer AuthContext involved).
 // -----------------------------------------------------------------------------
 
@@ -16,12 +17,26 @@ import { getAdminToken, clearAdminToken } from '../utils/adminToken.js';
 
 const DONE = ['resolved', 'closed'];
 
+function formatDateTime(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const [state, setState] = useState('loading'); // loading | ready | error
   const [tickets, setTickets] = useState([]);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [viewing, setViewing] = useState(null); // ticket object or null
 
   const hasToken = Boolean(getAdminToken());
 
@@ -50,6 +65,16 @@ export default function AdminPage() {
     };
   }, [hasToken, navigate]);
 
+  // Close the modal on Escape.
+  useEffect(() => {
+    if (!viewing) return;
+    function onKey(e) {
+      if (e.key === 'Escape') setViewing(null);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [viewing]);
+
   if (!hasToken) return <Navigate to="/admin/login" replace />;
 
   async function onResolve(t) {
@@ -60,6 +85,7 @@ export default function AdminPage() {
       setTickets((prev) =>
         prev.map((x) => (x.ticket_id === t.ticket_id ? { ...x, status: 'resolved' } : x))
       );
+      setViewing((v) => (v && v.ticket_id === t.ticket_id ? { ...v, status: 'resolved' } : v));
     } catch (err) {
       alert(err.message || 'Could not resolve the ticket.');
     } finally {
@@ -117,19 +143,26 @@ export default function AdminPage() {
                     <td>{t.subject}</td>
                     <td><span className={`pill pill-${t.priority}`}>{t.priority}</span></td>
                     <td><span className={`pill pill-${t.status}`}>{t.status.replace(/_/g, ' ')}</span></td>
-                    <td style={{ textAlign: 'right' }}>
-                      {DONE.includes(t.status) ? (
-                        <span className="faint" style={{ fontSize: 12 }}>—</span>
-                      ) : (
+                    <td>
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                         <button
                           type="button"
-                          className="btn btn-sm"
-                          disabled={busyId === t.ticket_id}
-                          onClick={() => onResolve(t)}
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => setViewing(t)}
                         >
-                          {busyId === t.ticket_id ? <span className="spinner" /> : 'Resolve'}
+                          View
                         </button>
-                      )}
+                        {!DONE.includes(t.status) && (
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            disabled={busyId === t.ticket_id}
+                            onClick={() => onResolve(t)}
+                          >
+                            {busyId === t.ticket_id ? <span className="spinner" /> : 'Resolve'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -137,6 +170,66 @@ export default function AdminPage() {
             </table>
           </div>
         </section>
+      )}
+
+      {viewing && (
+        <div
+          className="modal-overlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setViewing(null);
+          }}
+        >
+          <div className="modal" role="dialog" aria-modal="true" aria-label={`Ticket ${viewing.ticket_id}`}>
+            <div className="modal-head">
+              <div>
+                <h2>Ticket #{viewing.ticket_id}</h2>
+                <span className="faint">Raised {formatDateTime(viewing.created_at)}</span>
+              </div>
+              <button
+                type="button"
+                className="modal-close"
+                aria-label="Close"
+                onClick={() => setViewing(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <dl>
+                <dt>Customer</dt>
+                <dd>
+                  {viewing.customer_name}
+                  <br />
+                  <span className="faint" style={{ fontSize: 12 }}>
+                    {viewing.customer_email} · {viewing.customer_id}
+                  </span>
+                </dd>
+
+                <dt>Status</dt>
+                <dd>
+                  <span className={`pill pill-${viewing.status}`}>
+                    {viewing.status.replace(/_/g, ' ')}
+                  </span>
+                </dd>
+
+                <dt>Priority</dt>
+                <dd>
+                  <span className={`pill pill-${viewing.priority}`}>{viewing.priority}</span>
+                </dd>
+
+                <dt>Subject</dt>
+                <dd>{viewing.subject}</dd>
+
+                <dt>Description</dt>
+                <dd className="prewrap">{viewing.description || '—'}</dd>
+
+                <dt>Last updated</dt>
+                <dd>{formatDateTime(viewing.updated_at)}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -46,6 +46,20 @@ export default function AdminLoginPage() {
           <p className="auth-sub">Support console</p>
         </div>
 
+        <div className="demo-note">
+          <h2>Demo Version</h2>
+          <p>
+            This is a demo version of the application. Use the following admin
+            credentials to access and navigate through all admin pages.
+          </p>
+          <dl>
+            <dt>Email</dt>
+            <dd>Admin360@gmail.com</dd>
+            <dt>Password</dt>
+            <dd>Admin@360</dd>
+          </dl>
+        </div>
+
         <form onSubmit={onSubmit}>
           <FormField
             label="Email"

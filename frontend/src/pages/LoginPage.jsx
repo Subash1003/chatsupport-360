@@ -87,6 +87,11 @@ export default function LoginPage() {
           <span className="auth-sep">·</span>
           <Link to="/signup">Create an account</Link>
         </p>
+        <p className="auth-alt" style={{ marginTop: 8 }}>
+          <Link to="/admin/login" className="btn btn-ghost btn-sm">
+            Admin login
+          </Link>
+        </p>
       </div>
     </div>
   );

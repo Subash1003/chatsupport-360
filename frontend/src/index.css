@@ -414,9 +414,14 @@ code {
   font-weight: 600;
   color: var(--brand);
 }
+.link-more svg {
+  transition: transform var(--t-fast) var(--ease);
+}
 .link-more:hover {
-  gap: 8px;
   color: var(--brand-2);
+}
+.link-more:hover svg {
+  transform: translateX(3px);
 }
 
 /* ===========================================================================
@@ -763,6 +768,43 @@ textarea.field-control {
   color: var(--text-dim);
   line-height: 1.6;
   margin: 0 0 14px;
+}
+.demo-note {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--r-sm);
+  text-align: left;
+}
+.demo-note h2 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin: 0 0 6px;
+}
+.demo-note p {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+.demo-note dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+.demo-note dt {
+  color: var(--text-dim);
+}
+.demo-note dd {
+  margin: 0;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  color: var(--text);
 }
 .auth-alt {
   margin: 18px 0 0;
@@ -1277,6 +1319,94 @@ textarea.field-control {
 }
 
 /* ===========================================================================
+   Modal / dialog
+   =========================================================================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(16px, 8vh, 90px) 16px 16px;
+  background: rgba(16, 24, 40, 0.55);
+  overflow-y: auto;
+  animation: fadeIn var(--t) var(--ease-out) both;
+}
+.modal {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-lg);
+  animation: popIn var(--t-slow) var(--ease-out) both;
+}
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h2 {
+  font-size: 16px;
+  margin: 0 0 2px;
+}
+.modal-head .faint {
+  font-size: 12px;
+}
+.modal-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.modal-close:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.modal-body {
+  padding: 18px 20px;
+}
+.modal-body dl {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px 16px;
+  margin: 0;
+  font-size: 13px;
+}
+.modal-body dt {
+  color: var(--text-faint);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+.modal-body dd {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.6;
+}
+.modal-body dd.prewrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===========================================================================
    Project list
    =========================================================================== */
 
@@ -1569,6 +1699,14 @@ textarea.field-control {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 @keyframes msgIn {
