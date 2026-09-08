@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// main.jsx
-//
-// Entry point. Mounts <App /> inside the router and the auth provider so every
-// page can call useAuth().
-// -----------------------------------------------------------------------------
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

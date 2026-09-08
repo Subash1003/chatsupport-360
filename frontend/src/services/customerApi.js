@@ -1,9 +1,5 @@
-// -----------------------------------------------------------------------------
-// customerApi.js
-//
-// Wraps GET /api/customer/*. All require a valid JWT — apiClient attaches it.
+// Wraps GET /api/customer/*. All require a valid JWT (apiClient attaches it).
 // Returns the `data` payload from the response envelope.
-// -----------------------------------------------------------------------------
 
 import apiClient from './apiClient.js';
 
@@ -32,12 +28,7 @@ export async function fetchTickets() {
   return data.data.tickets;
 }
 
-// Raise a new support ticket (e.g. a new project requirement).
 export async function createTicket({ subject, description, priority }) {
-  const { data } = await apiClient.post('/customer/tickets', {
-    subject,
-    description,
-    priority,
-  });
+  const { data } = await apiClient.post('/customer/tickets', { subject, description, priority });
   return data.data.ticket;
 }

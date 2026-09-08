@@ -1,24 +1,18 @@
-// -----------------------------------------------------------------------------
-// tests/rag-eval.mjs
-//
 // RAG evaluation harness. Runs every case in rag-eval-dataset.json against a
-// RUNNING backend (real retrieval + real LLM) and scores:
+// running backend (real retrieval + real LLM) and scores:
 //
-//   classification  - does the classifier pick the expected class?
-//   groundedness    - does `grounded` match (answered from context vs "no info")?
-//   answer recall   - are all expected facts present in the reply?
-//   answer precision- is forbidden / hallucinated / leaked text absent?
-//   retrieval       - did at least one expected source document_type come back?
-//   isolation       - anon/other-customer never sees private / cross-customer data
+//   classification   – does the classifier pick the expected class?
+//   groundedness     – does `grounded` match (context vs "no info")?
+//   answer recall    – are all expected facts present in the reply?
+//   answer precision – is forbidden / hallucinated / leaked text absent?
+//   retrieval        – did at least one expected source document_type come back?
+//   isolation        – anon / other-customer never sees private data
 //
-// Usage:
-//   cd backend
 //   npm run dev                       # in another terminal
 //   node tests/rag-eval.mjs           # or: node tests/rag-eval.mjs http://localhost:5000/api
 //
-// Exit 0 if every case fully passes AND every isolation check passes; else 1.
-// Chat calls are paced for the Groq free tier; one retry on LLM_RATE_LIMITED.
-// -----------------------------------------------------------------------------
+// Exit 0 if every case fully passes AND every isolation check passes.
+// Chat calls are paced; one retry on LLM_RATE_LIMITED.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

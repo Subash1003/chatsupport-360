@@ -1,13 +1,8 @@
-// -----------------------------------------------------------------------------
-// customer.model.js
-//
-// All SQL that touches `customers` and `id_counters`. No req/res in here.
-// Every value is a bound parameter (rule 8).
-// -----------------------------------------------------------------------------
+// SQL for `customers` and `id_counters`.
 
 import { query, queryOne, withTransaction } from '../config/db.js';
 
-/** Public-safe profile fields (never the password hash), or null. */
+// Public-safe fields only — never the password hash.
 export function getProfileById(customerId) {
   return queryOne(
     `SELECT customer_id, name, email, is_active, created_at, updated_at
@@ -17,7 +12,7 @@ export function getProfileById(customerId) {
   );
 }
 
-/** Full row for the login lookup, or null. */
+// Full row for the login lookup, or null.
 export function findCustomerByEmail(email) {
   return queryOne(
     `SELECT customer_id, name, email, password_hash, is_active
@@ -27,22 +22,14 @@ export function findCustomerByEmail(email) {
   );
 }
 
-/** Cheap existence check for signup / forgot-password. */
 export async function emailExists(email) {
-  const row = await queryOne('SELECT 1 AS found FROM customers WHERE email = ?', [
-    email,
-  ]);
+  const row = await queryOne('SELECT 1 AS found FROM customers WHERE email = ?', [email]);
   return row !== null;
 }
 
-/**
- * Reserve the next customer id from id_counters and insert the customer row,
- * both inside ONE transaction (spec §6). Returns the new id string, e.g.
- * "CUST1004".
- *
- * The LAST_INSERT_ID(expr) trick makes the increment atomic and
- * connection-local, so two concurrent signups can never get the same number.
- */
+// Reserve the next id and insert the row in one transaction. The
+// LAST_INSERT_ID(expr) trick makes the increment atomic and connection-local, so
+// two concurrent signups can't collide. Returns e.g. "CUST1004".
 export function createCustomer({ name, email, passwordHash }) {
   return withTransaction(async (conn) => {
     const [updateResult] = await conn.execute(
@@ -73,7 +60,6 @@ export function createCustomer({ name, email, passwordHash }) {
   });
 }
 
-/** Overwrite the password hash for an existing account (password reset). */
 export function updateCustomerPassword(email, passwordHash) {
   return query('UPDATE customers SET password_hash = ? WHERE email = ?', [
     passwordHash,

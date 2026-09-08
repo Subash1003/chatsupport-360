@@ -1,16 +1,9 @@
-// -----------------------------------------------------------------------------
-// knowledge.model.js
-//
-// SQL reads that feed the ingestion pipeline. No req/res here.
-//
-// `services` and `offers` are already structured public data — ingested straight
-// from MySQL. `projects` + `project_tasks` and `support_tickets` are turned into
-// per-customer PRIVATE documents by ingestion.service.js.
-// -----------------------------------------------------------------------------
+// SQL reads that feed the ingestion pipeline. `services` and `offers` are
+// ingested straight from MySQL as public data; projects/tasks and tickets are
+// turned into per-customer private documents by ingestion.service.js.
 
 import { query } from '../config/db.js';
 
-/** Active public services. */
 export function getActiveServices() {
   return query(
     `SELECT service_id, name, description, price
@@ -20,7 +13,7 @@ export function getActiveServices() {
   );
 }
 
-/** Offers that are live right now (same rule the chatbot must use). */
+// Live right now — the same rule the chatbot must apply.
 export function getActiveOffers() {
   return query(
     `SELECT offer_id, title, description, discount, valid_from, valid_until
@@ -31,7 +24,6 @@ export function getActiveOffers() {
   );
 }
 
-/** Active customer ids, for "ingest every customer". */
 export async function getActiveCustomerIds() {
   const rows = await query(
     `SELECT customer_id FROM customers WHERE is_active = 1 ORDER BY customer_id`
@@ -39,7 +31,7 @@ export async function getActiveCustomerIds() {
   return rows.map((r) => r.customer_id);
 }
 
-/** One customer's projects, each with its task list attached. */
+// One customer's projects, each with its task list attached.
 export async function getProjectsWithTasks(customerId) {
   const projects = await query(
     `SELECT project_id, project_name, description, status,
@@ -66,7 +58,6 @@ export async function getProjectsWithTasks(customerId) {
   return [...byProject.values()];
 }
 
-/** One customer's support tickets. */
 export function getTickets(customerId) {
   return query(
     `SELECT ticket_id, subject, description, status, priority, created_at

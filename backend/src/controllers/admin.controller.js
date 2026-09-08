@@ -1,8 +1,4 @@
-// -----------------------------------------------------------------------------
-// admin.controller.js
-//
-// Read the request -> call admin.service -> respond. No SQL, no business rules.
-// -----------------------------------------------------------------------------
+// Read the request → call admin.service → respond.
 
 import { asyncHandler } from '../utils/asyncHandler.js';
 import * as adminService from '../services/admin.service.js';
@@ -15,7 +11,7 @@ export const adminLogin = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: 'Admin logged in.', data });
 });
 
-// GET /api/admin/tickets   (requireAdmin) -> every ticket, all customers
+// GET /api/admin/tickets   (requireAdmin)
 export const adminListTickets = asyncHandler(async (req, res) => {
   const tickets = await adminService.listTickets();
   res.status(200).json({ success: true, message: 'OK', data: { tickets } });

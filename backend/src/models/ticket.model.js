@@ -1,12 +1,7 @@
-// -----------------------------------------------------------------------------
-// ticket.model.js
-//
-// SQL for `support_tickets`. No req/res here.
-// -----------------------------------------------------------------------------
+// SQL for `support_tickets`.
 
 import { query, queryOne } from '../config/db.js';
 
-/** A customer's support tickets, newest first. */
 export function listTicketsByCustomer(customerId) {
   return query(
     `SELECT ticket_id, subject, description, status, priority,
@@ -18,7 +13,7 @@ export function listTicketsByCustomer(customerId) {
   );
 }
 
-/** One ticket, but only if it belongs to this customer (else null). */
+// null if the ticket doesn't belong to this customer.
 export function findTicketForCustomer(ticketId, customerId) {
   return queryOne(
     `SELECT ticket_id, subject, description, status, priority,
@@ -29,11 +24,8 @@ export function findTicketForCustomer(ticketId, customerId) {
   );
 }
 
-/**
- * Raise a new ticket. `status` is left to the column default ('open') so a
- * customer can only ever open a ticket, never set its state.
- * @returns {Promise<number>} the new ticket_id
- */
+// status is left to its column default ('open') so a customer can only open a
+// ticket, never set its state. Returns the new ticket_id.
 export async function createTicket(customerId, { subject, description, priority }) {
   const result = await query(
     `INSERT INTO support_tickets (customer_id, subject, description, priority)
@@ -43,9 +35,9 @@ export async function createTicket(customerId, { subject, description, priority 
   return result.insertId;
 }
 
-// --- admin ---------------------------------------------------------------
+// --- admin ---
 
-/** Every ticket across all customers, open ones first, newest first. */
+// Every ticket across all customers, open ones first, newest first.
 export function listAllTickets() {
   return query(
     `SELECT t.ticket_id, t.subject, t.description, t.status, t.priority,
@@ -58,7 +50,7 @@ export function listAllTickets() {
   );
 }
 
-/** Mark a ticket resolved. Returns true if a row changed. */
+// true if a row changed.
 export async function markTicketResolved(ticketId) {
   const r = await query(
     `UPDATE support_tickets SET status = 'resolved' WHERE ticket_id = ?`,

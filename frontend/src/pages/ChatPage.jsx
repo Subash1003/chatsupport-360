@@ -1,17 +1,12 @@
-// -----------------------------------------------------------------------------
-// ChatPage.jsx
-//
 // The assistant.
-//   - visitor   -> public knowledge. A BRAND-NEW session id every page load and
-//                  no transcript replay, so a reload clears the chat.
-//   - signed in -> a stable per-browser session; the JWT rides along, the stored
-//                  transcript is replayed, and the empty-state is personalised.
+//   visitor   – public knowledge, a fresh session id every page load, no
+//               transcript replay (so a reload clears the chat)
+//   signed in – a stable per-browser session; the JWT rides along, the stored
+//               transcript is replayed, and the empty state is personalised
 //
-// Raising a support ticket happens IN THE CONVERSATION: when a signed-in user
-// asks to raise a ticket, a small slot-filling flow (subject -> details ->
-// priority -> summary -> confirm) takes over WITHOUT calling the LLM. Everything
-// else about the chat is unchanged.
-// -----------------------------------------------------------------------------
+// Raising a support ticket happens in the conversation: when a signed-in user
+// asks for one, a slot-filling flow (subject → details → priority → confirm)
+// takes over without calling the LLM.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -134,7 +129,7 @@ export default function ChatPage() {
       if (!text) return;
       setDraft('');
 
-      // -------- 1. A ticket flow is in progress: this message is an answer -----
+      // 1. A ticket flow is in progress — this message answers its current step.
       const flow = ticketFlowRef.current;
       if (flow) {
         pushUser(text);
@@ -218,7 +213,7 @@ export default function ChatPage() {
         }
       }
 
-      // -------- 2. No flow yet: does the user want to raise a ticket? ----------
+      // 2. No flow yet — does the user want to start one?
       if (RAISE_TICKET_RE.test(text)) {
         pushUser(text);
         if (!isAuthenticated) {
@@ -232,7 +227,7 @@ export default function ChatPage() {
         return;
       }
 
-      // -------- 3. Normal chat (unchanged) -----------------------------------
+      // 3. Normal chat.
       setError('');
       pushUser(text);
       setPending(true);

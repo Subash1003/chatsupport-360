@@ -1,20 +1,9 @@
-// -----------------------------------------------------------------------------
-// email.service.js
-//
-// A small pluggable email layer. Auth code calls sendOtpEmail() and does not
-// know or care which transport delivers it. Interface: send({ to, subject,
-// text, html }).
-//
-// Transports:
-//   console  (default) — prints the OTP to the backend terminal. No account
-//                        needed. Good for local dev.
-//   smtp               — real email over SMTP (nodemailer). Works with Gmail
-//                        (using an App Password), Outlook, or any SMTP host.
-//   resend             — real email via the Resend HTTP API (no extra package).
-//
-// Pick one with EMAIL_TRANSPORT in backend/.env and fill the matching keys.
-// Secrets and provider error bodies are never returned to the client (spec §2).
-// -----------------------------------------------------------------------------
+// Pluggable email layer. Auth code calls sendOtpEmail() and doesn't care which
+// transport delivers it. Pick one with EMAIL_TRANSPORT in .env:
+//   console (default) – prints the OTP to the terminal; no account needed
+//   smtp              – nodemailer (Gmail App Password, Outlook, any SMTP host)
+//   resend            – the Resend HTTP API, no extra package
+// Secrets and provider error bodies never reach the client.
 
 import nodemailer from 'nodemailer';
 
@@ -28,7 +17,6 @@ function httpError(statusCode, code, message) {
   return err;
 }
 
-// --- console: print to the terminal (default) -------------------------------
 const consoleTransport = {
   name: 'console',
   async send({ to, subject, text }) {
@@ -49,10 +37,9 @@ const consoleTransport = {
   },
 };
 
-// --- smtp: real email via nodemailer --------------------------------------
-let _smtp; // lazy singleton
+let smtp; // lazy singleton
 function smtpTransporter() {
-  if (_smtp) return _smtp;
+  if (smtp) return smtp;
   if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS) {
     throw httpError(
       500,
@@ -60,27 +47,21 @@ function smtpTransporter() {
       'SMTP_HOST, SMTP_USER and SMTP_PASS must be set for EMAIL_TRANSPORT=smtp.'
     );
   }
-  _smtp = nodemailer.createTransport({
+  smtp = nodemailer.createTransport({
     host: env.SMTP_HOST,
     port: env.SMTP_PORT, // 587 = STARTTLS, 465 = implicit TLS
-    secure: env.SMTP_SECURE, // true only for port 465
+    secure: env.SMTP_SECURE, // true only for 465
     auth: { user: env.SMTP_USER, pass: env.SMTP_PASS },
   });
-  return _smtp;
+  return smtp;
 }
 
 const smtpTransport = {
   name: 'smtp',
   async send({ to, subject, text, html }) {
-    const transporter = smtpTransporter(); // throws EMAIL_NOT_CONFIGURED (500) if unset
+    const transporter = smtpTransporter();
     try {
-      const info = await transporter.sendMail({
-        from: env.EMAIL_FROM,
-        to,
-        subject,
-        text,
-        html,
-      });
+      const info = await transporter.sendMail({ from: env.EMAIL_FROM, to, subject, text, html });
       return { delivered: true, transport: 'smtp', id: info.messageId };
     } catch (err) {
       logger.error({ module: 'email', transport: 'smtp', detail: err.message }, 'smtp send failed');
@@ -89,7 +70,6 @@ const smtpTransport = {
   },
 };
 
-// --- resend: real email via the Resend HTTP API (no dependency) -----------
 const resendTransport = {
   name: 'resend',
   async send({ to, subject, text, html }) {
@@ -145,7 +125,6 @@ function activeTransport() {
   return transport;
 }
 
-// --- message body --------------------------------------------------------
 function otpHtml({ heading, otp }) {
   return `<!doctype html><html><body style="margin:0;background:#f4f6f9;padding:28px;font-family:Arial,Helvetica,sans-serif;color:#16202b">
   <table role="presentation" width="100%" style="max-width:460px;margin:0 auto;background:#fff;border:1px solid #e4e8ec;border-radius:10px">
@@ -160,10 +139,7 @@ function otpHtml({ heading, otp }) {
 </body></html>`;
 }
 
-/**
- * The only function auth code should call. Builds the OTP message and hands it
- * to the active transport.
- */
+// The only function auth code should call.
 export async function sendOtpEmail({ to, otp, purpose }) {
   const isReset = purpose === 'password_reset';
   const subject = isReset ? 'Your password reset code' : 'Your verification code';
@@ -181,7 +157,7 @@ export async function sendOtpEmail({ to, otp, purpose }) {
     html: otpHtml({ heading, otp }),
   });
 
-  // Trace that an OTP mail went out — WITHOUT the code itself (spec rule 7).
+  // Trace that a mail went out — never the code itself.
   logger.info(
     { to, purpose: purpose || 'email_verification', transport: env.EMAIL_TRANSPORT },
     'otp email sent'

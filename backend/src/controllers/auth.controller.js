@@ -1,9 +1,4 @@
-// -----------------------------------------------------------------------------
-// auth.controller.js
-//
-// Read the request -> validate -> call auth.service -> respond with an envelope.
-// No SQL, no business rules here.
-// -----------------------------------------------------------------------------
+// Read the request → validate → call auth.service → respond with an envelope.
 
 import { asyncHandler } from '../utils/asyncHandler.js';
 import * as authService from '../services/auth.service.js';
@@ -15,7 +10,6 @@ import {
   validateName,
 } from '../utils/validation.js';
 
-/** Standard success envelope (spec §5). */
 function sendOk(res, status, message, data = null) {
   res.status(status).json({ success: true, message, data });
 }
@@ -33,8 +27,7 @@ export const verifyOtp = asyncHandler(async (req, res) => {
   requireBody(req.body, ['email', 'otp']);
   const email = normaliseEmail(req.body.email);
   const otp = validateOtpFormat(req.body.otp);
-  const purpose =
-    req.body.purpose === 'password_reset' ? 'password_reset' : 'signup';
+  const purpose = req.body.purpose === 'password_reset' ? 'password_reset' : 'signup';
   await authService.verifyOtp(email, otp, purpose);
   sendOk(res, 200, 'Code verified.');
 });
@@ -63,7 +56,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   requireBody(req.body, ['email']);
   const email = normaliseEmail(req.body.email);
   await authService.requestPasswordReset(email);
-  // Deliberately the same response whether or not the email is registered.
+  // Same response whether or not the email is registered.
   sendOk(res, 200, 'If that email is registered, a reset code has been sent.');
 });
 
@@ -77,9 +70,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   sendOk(res, 200, 'Password updated. You can now log in with your new password.');
 });
 
-// POST /api/auth/logout
+// POST /api/auth/logout — JWTs are stateless, so this is just for symmetry.
 export const logout = asyncHandler(async (req, res) => {
-  // JWTs are stateless: logging out means the client discards its token.
-  // The endpoint exists for symmetry and future server-side revocation.
   sendOk(res, 200, 'Logged out.');
 });

@@ -1,9 +1,4 @@
-// -----------------------------------------------------------------------------
-// HomePage.jsx
-//
-// Landing page: hero + a grid of what the assistant can help with. The Phase 1/2
-// (the old Phase 1/2 dev status board has been removed from the UI).
-// -----------------------------------------------------------------------------
+// Landing page: hero + a grid of what the assistant can help with.
 
 import { Link } from 'react-router-dom';
 

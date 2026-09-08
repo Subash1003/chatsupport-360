@@ -1,14 +1,6 @@
-// -----------------------------------------------------------------------------
-// App.jsx
-//
 // Layout (navbar + page area + footer + floating contact) and the route table.
-//
-// Public:     /  /chat  /login  /signup  /forgot-password
-// Protected:  /account  /projects  /projects/:id   (wrapped in <ProtectedRoute>)
-//
-// The page area is keyed on the pathname so each route mounts with a short
-// enter animation (`.route` in index.css; disabled under prefers-reduced-motion).
-// -----------------------------------------------------------------------------
+// The page area is keyed on the pathname so each route mounts with a short enter
+// animation (`.route` in index.css).
 
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 

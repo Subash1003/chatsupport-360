@@ -1,13 +1,8 @@
-// -----------------------------------------------------------------------------
-// subscription.model.js
-//
-// SQL for `subscriptions`. Joined to `services` (public data) so the response
-// carries the service name / description / price, not just a numeric id.
-// -----------------------------------------------------------------------------
+// SQL for `subscriptions`, joined to `services` so the response carries the
+// service name / description / price rather than a bare id.
 
 import { query } from '../config/db.js';
 
-/** A customer's subscriptions with the service they point at, newest first. */
 export function listSubscriptionsByCustomer(customerId) {
   return query(
     `SELECT sub.subscription_id, sub.status, sub.start_date, sub.end_date,

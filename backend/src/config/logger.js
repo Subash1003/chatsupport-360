@@ -1,34 +1,18 @@
-// -----------------------------------------------------------------------------
-// logger.js
-// The ONE logger instance for the whole backend.
+// One pino instance for the backend. Everything logs through it so output shape
+// is consistent, secrets are redacted in one place, and prod emits plain JSON
+// to stdout while dev gets a colourised stream.
 //
-// Everything that used to `console.log` / `console.error` goes through this so
-// that (a) output has a consistent shape, (b) secrets and PII are redacted in
-// one place, and (c) production emits plain JSON to stdout (which the host
-// captures) while development gets a readable, colourised stream.
-//
-// Usage:
-//   import logger from '../config/logger.js';
 //   logger.info({ customerId }, 'did a thing');
-//   logger.error({ err }, 'a thing failed');
-//
-// Or a namespaced child:
-//   import { child } from '../config/logger.js';
 //   const log = child({ module: 'retrieval' });
-// -----------------------------------------------------------------------------
 
 import pino from 'pino';
 import env from './env.js';
 
-// Level: explicit LOG_LEVEL wins; otherwise 'debug' in development, 'info' in
-// production. 'debug' in dev keeps the health-check lines (logged at debug) and
-// other diagnostics visible while you build; production stays at 'info'.
+// 'debug' in dev keeps health-check lines and diagnostics visible; 'info' in prod.
 const level = env.LOG_LEVEL || (env.isProduction ? 'info' : 'debug');
 
-// Fields to hide wherever they appear in a logged object. `censor` replaces the
-// matched value with the literal string "[redacted]". Paths use pino's syntax:
-// dotted paths for known locations, `*.name` for "any key called name at depth
-// 1", `["quoted"]` for keys with odd characters.
+// Hidden wherever they appear in a logged object. Paths use pino's syntax:
+// `*.name` means "any key called name at depth 1".
 const redact = {
   paths: [
     'req.headers.authorization',
@@ -49,31 +33,21 @@ const redact = {
   censor: '[redacted]',
 };
 
-// Pretty, human-readable output in development; plain JSON in production.
-const usePretty = !env.isProduction;
-
 const logger = pino({
   level,
   redact,
-  base: undefined, // drop the default pid/hostname bindings — noise for this app
-  ...(usePretty
-    ? {
+  base: undefined, // drop default pid/hostname bindings — noise for this app
+  ...(env.isProduction
+    ? {}
+    : {
         transport: {
           target: 'pino-pretty',
-          options: {
-            colorize: true,
-            translateTime: 'SYS:standard',
-            ignore: 'pid,hostname',
-          },
+          options: { colorize: true, translateTime: 'SYS:standard', ignore: 'pid,hostname' },
         },
-      }
-    : {}),
+      }),
 });
 
-/**
- * A namespaced child logger, e.g. child({ module: 'llm' }). The bindings are
- * added to every line the child writes and are still run through `redact`.
- */
+// Namespaced child, e.g. child({ module: 'llm' }); bindings still run through redact.
 export function child(bindings = {}) {
   return logger.child(bindings);
 }

@@ -1,10 +1,5 @@
-// -----------------------------------------------------------------------------
-// authApi.js
-//
-// Wraps POST /api/auth/*. Each function returns the backend's response envelope
-// (`{ success, message, data }`); errors are already normalised by apiClient.
-// Components never build these URLs themselves.
-// -----------------------------------------------------------------------------
+// Wraps POST /api/auth/*. Each function returns the response envelope
+// ({ success, message, data }); errors are already normalised by apiClient.
 
 import apiClient from './apiClient.js';
 
@@ -34,10 +29,6 @@ export async function forgotPassword(email) {
 }
 
 export async function resetPassword({ email, otp, newPassword }) {
-  const { data } = await apiClient.post('/auth/reset-password', {
-    email,
-    otp,
-    newPassword,
-  });
+  const { data } = await apiClient.post('/auth/reset-password', { email, otp, newPassword });
   return data;
 }

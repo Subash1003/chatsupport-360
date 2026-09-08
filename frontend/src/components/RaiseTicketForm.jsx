@@ -1,11 +1,6 @@
-// -----------------------------------------------------------------------------
-// RaiseTicketForm.jsx
-//
-// Signed-in customers use this to raise a support ticket (a bug, a question, or
-// a NEW PROJECT REQUIREMENT). Posts to POST /api/customer/tickets; the new
-// ticket comes back and is handed to the parent via onCreated so the list
-// updates immediately.
-// -----------------------------------------------------------------------------
+// Signed-in customers raise a support ticket here — a bug, a question, or a new
+// project requirement. Posts to /api/customer/tickets; the new ticket is handed
+// back via onCreated so the parent's list updates immediately.
 
 import { useState } from 'react';
 

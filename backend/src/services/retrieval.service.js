@@ -1,21 +1,13 @@
-// -----------------------------------------------------------------------------
-// retrieval.service.js
+// Gather the trusted context for a chat answer:
+//   1. embed the query
+//   2. vector-search Qdrant with an identity-scoped filter built server-side —
+//      anonymous → public only; authenticated → public OR that customer's private
+//   3. for an authenticated caller, also pull a live MySQL snapshot so answers
+//      about their own projects/tickets/subs are fresh even if Qdrant is behind
+//   4. drop weak hits (below RAG_MIN_SCORE)
 //
-// Phase 7: gather the trusted context for a chat answer.
-//
-//   1. Embed the query.
-//   2. Vector search Qdrant with an IDENTITY-SCOPED filter built server-side:
-//        anonymous      -> visibility = "public"
-//        authenticated  -> public  OR  (private AND customer_id = <from JWT>)
-//      customerId comes only from req.customer.customer_id (spec rule 1).
-//   3. For an authenticated caller, also pull a small LIVE snapshot from MySQL
-//      (the source of truth) so answers about their own projects/tickets/subs
-//      are fresh even if the vector store is behind.
-//   4. Drop weak hits (below RAG_MIN_SCORE).
-//
-// Retrieval failures degrade to "no context" — the chat still answers (with the
-// honest "I don't have that information" path) rather than 500ing.
-// -----------------------------------------------------------------------------
+// Retrieval failures degrade to "no context" — the chat still answers via the
+// honest "I don't have that information" path rather than 500ing.
 
 import env from '../config/env.js';
 import logger from '../config/logger.js';
@@ -43,14 +35,10 @@ async function vectorContext(query, customerId, { boostOffers = false } = {}) {
 
   let hits;
   try {
-    hits = await search({
-      vector,
-      filter: filterForIdentity(customerId),
-      limit: env.RAG_TOP_K,
-    });
+    hits = await search({ vector, filter: filterForIdentity(customerId), limit: env.RAG_TOP_K });
 
-    // Phase 8 routing: an OFFER_OR_PROMOTION query also pulls offer docs
-    // directly, so live offers surface even when generic scoring buries them.
+    // An OFFER_OR_PROMOTION query also pulls offer docs directly, so live offers
+    // surface even when generic scoring buries them.
     if (boostOffers) {
       const scope = customerId ? 'customer' : 'public';
       const offerHits = await search({
@@ -98,7 +86,7 @@ async function accountSnapshot(customerId) {
       listTicketsByCustomer(customerId),
     ]);
 
-    // Nothing at all (token valid but the row is gone) — no snapshot.
+    // Token valid but the row is gone — no snapshot.
     if (!profile && !projects.length && !subs.length && !tickets.length) return null;
 
     const lines = [];
@@ -123,17 +111,12 @@ async function accountSnapshot(customerId) {
     if (subs.length) {
       lines.push('Subscriptions:');
       for (const s of subs) {
-        lines.push(
-          `- ${s.service_name} — ${s.status}` +
-            (s.end_date ? `, ends ${s.end_date}` : '')
-        );
+        lines.push(`- ${s.service_name} — ${s.status}` + (s.end_date ? `, ends ${s.end_date}` : ''));
       }
     }
 
     if (tickets.length) {
-      const open = tickets.filter(
-        (t) => !['resolved', 'closed'].includes(t.status)
-      );
+      const open = tickets.filter((t) => !['resolved', 'closed'].includes(t.status));
       lines.push(`Support tickets: ${tickets.length} total, ${open.length} open.`);
       for (const t of open.slice(0, 5)) {
         lines.push(`- #${t.ticket_id} ${t.subject} — ${t.status}/${t.priority}`);
@@ -147,12 +130,7 @@ async function accountSnapshot(customerId) {
   }
 }
 
-/**
- * @param {{ query: string, customerId: string|null, classification?: string }} args
- * @returns {Promise<{ contextBlocks: string[], sources: object[], grounded: boolean }>}
- */
 export async function retrieveContext({ query, customerId, classification }) {
-  // Phase 8 routing. Security is unaffected — the identity filter is unchanged.
   const boostOffers = classification === 'OFFER_OR_PROMOTION';
   const wantAccount =
     Boolean(customerId) &&

@@ -1,12 +1,6 @@
-// -----------------------------------------------------------------------------
-// ChatMessage.jsx
-//
-// One bubble with an avatar. Bot replies are Markdown (react-markdown + GFM —
-// no raw HTML, so safe for model output); user text stays plain. Under every
-// bot reply that has them we show up to 3 suggested follow-up questions as
-// chips; clicking one sends it as the next message (`onFollowup`). The
-// retrieved-source labels are intentionally not shown.
-// -----------------------------------------------------------------------------
+// One bubble with an avatar. Bot replies render as Markdown (react-markdown +
+// GFM, no raw HTML, so model output is safe); user text stays plain. Up to 3
+// follow-up chips under a bot reply send themselves as the next message.
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

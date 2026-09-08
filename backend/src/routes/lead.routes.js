@@ -1,11 +1,5 @@
-// -----------------------------------------------------------------------------
-// lead.routes.js
-//
-// URL -> controller. Mounted at /api/leads in server.js.
-//
-// Public and unauthenticated: a visitor submits an enquiry. Rate limiting
-// (leadsLimiter) is applied at the mount point in server.js.
-// -----------------------------------------------------------------------------
+// Mounted at /api/leads. Public and unauthenticated; leadsLimiter is applied at
+// the mount point in server.js.
 
 import { Router } from 'express';
 import { submitLead } from '../controllers/lead.controller.js';

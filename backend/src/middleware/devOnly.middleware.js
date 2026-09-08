@@ -1,14 +1,6 @@
-// -----------------------------------------------------------------------------
-// devOnly.middleware.js
-//
-// Gate for endpoints that should not exist in production. The ingestion routes
-// rebuild the vector store — an operator action, not a customer one. For local
-// build-out (Phase 5) a dev-only guard is enough; real protection (a token or
-// an admin role) is a Phase 14 concern.
-//
-// When NODE_ENV=production the route responds exactly like an unknown route,
-// so its existence is not even disclosed.
-// -----------------------------------------------------------------------------
+// Gate for endpoints that shouldn't exist in production — the ingestion routes
+// that rebuild the vector store. In production the route answers exactly like an
+// unknown route, so its existence isn't disclosed.
 
 import env from '../config/env.js';
 

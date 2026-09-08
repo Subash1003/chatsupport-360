@@ -1,30 +1,15 @@
-// -----------------------------------------------------------------------------
-// authorization.middleware.js
-//
-// Phase 9: a runtime backstop for spec rule 1 —
-//
-//   customer_id comes ONLY from the verified JWT (req.customer.customer_id).
-//   Never from req.body, req.query, req.params, or a client header.
-//
-// The controllers and services already honour this. This middleware makes a
-// violation impossible to introduce silently later: any request that carries a
-// customer / account identifier in its body or query string is refused with
-// 400 CLIENT_ID_NOT_ALLOWED before it reaches a controller.
-//
-// Mounted on the authenticated, identity-scoped surfaces (/api/customer,
-// /api/chat). NOT on /api/ingest — those are dev-only tools (404 in production)
-// that legitimately take a customer_id because they run without a JWT.
-// -----------------------------------------------------------------------------
+// Runtime backstop for "customer_id comes only from the verified JWT": any
+// request carrying a customer/account identifier in its body or query string is
+// refused with 400 before it reaches a controller. Mounted on /api/customer and
+// /api/chat — not on /api/ingest, whose dev-only tools legitimately pass a
+// customer_id and run without a JWT.
 
 // customer_id, customerId, cust-id, cid, account_id, client_id, ...
 const CLIENT_ID_KEY = /^(customer|cust|account|client)[_-]?id$|^cid$/i;
 
 function offendingKey(obj) {
   if (!obj || typeof obj !== 'object') return null;
-  for (const key of Object.keys(obj)) {
-    if (CLIENT_ID_KEY.test(key)) return key;
-  }
-  return null;
+  return Object.keys(obj).find((key) => CLIENT_ID_KEY.test(key)) || null;
 }
 
 export function rejectClientCustomerId(req, res, next) {

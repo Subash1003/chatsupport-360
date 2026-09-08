@@ -1,11 +1,6 @@
-// -----------------------------------------------------------------------------
-// AdminPage.jsx
-//
-// Admin-only. Lists every support ticket across all customers. "View" opens a
-// modal with the full ticket detail; "Resolve" (with a confirm) sets a ticket's
-// status to resolved via PATCH /api/admin/tickets/:id/resolve.
-// Self-guards on the admin token (no customer AuthContext involved).
-// -----------------------------------------------------------------------------
+// Lists every support ticket across all customers. "View" opens a detail modal;
+// "Resolve" (with a confirm) PATCHes the ticket to resolved. Self-guards on the
+// admin token — no customer AuthContext involved.
 
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';

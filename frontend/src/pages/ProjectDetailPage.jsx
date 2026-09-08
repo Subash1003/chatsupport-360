@@ -1,10 +1,6 @@
-// -----------------------------------------------------------------------------
-// ProjectDetailPage.jsx
-//
-// GET /api/customer/projects/:id -> { project, tasks }.
-// A project id that does not exist OR belongs to another customer returns 404
-// PROJECT_NOT_FOUND — we show the same "not found" for both (spec §2, Phase 4).
-// -----------------------------------------------------------------------------
+// GET /api/customer/projects/:id → { project, tasks }. An id that doesn't exist
+// or belongs to another customer both come back as 404 PROJECT_NOT_FOUND, and we
+// show the same "not found" for both.
 
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';

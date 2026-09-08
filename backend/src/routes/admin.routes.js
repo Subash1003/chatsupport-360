@@ -1,11 +1,4 @@
-// -----------------------------------------------------------------------------
-// admin.routes.js
-//
-// URL -> controller. Mounted at /api/admin in server.js.
-//   POST  /login                  public, brute-force limited
-//   GET   /tickets                requireAdmin
-//   PATCH /tickets/:id/resolve    requireAdmin
-// -----------------------------------------------------------------------------
+// Mounted at /api/admin.
 
 import { Router } from 'express';
 

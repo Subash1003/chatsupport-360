@@ -1,8 +1,4 @@
-// -----------------------------------------------------------------------------
-// LoadingMessage.jsx
-//
 // The "assistant is typing" bubble, shown while POST /api/chat is in flight.
-// -----------------------------------------------------------------------------
 
 import BrandMark from './BrandMark.jsx';
 

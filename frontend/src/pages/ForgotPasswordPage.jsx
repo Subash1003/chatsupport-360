@@ -1,12 +1,6 @@
-// -----------------------------------------------------------------------------
-// ForgotPasswordPage.jsx
-//
-//   1. email                 -> POST /api/auth/forgot-password  (always 200)
-//   2. code + new password   -> POST /api/auth/reset-password
-//
-// Do NOT call /verify-otp for a reset — reset-password verifies AND consumes the
-// code in one call (spec §8). On success, send the user to /login.
-// -----------------------------------------------------------------------------
+// Two steps: email → /auth/forgot-password (always 200), then code + new
+// password → /auth/reset-password, which verifies AND consumes the code in one
+// call (so don't call /verify-otp for a reset). On success, go to /login.
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -38,16 +32,16 @@ export default function ForgotPasswordPage() {
     }
   }
 
-  const submitEmail = (e) => {
+  function submitEmail(e) {
     e.preventDefault();
     run(async () => {
       await forgotPassword(email);
       setNotice('If that email is registered, a reset code has been sent (check the backend terminal in dev).');
       setStep(2);
     });
-  };
+  }
 
-  const submitReset = (e) => {
+  function submitReset(e) {
     e.preventDefault();
     run(async () => {
       await resetPassword({ email, otp, newPassword });
@@ -56,7 +50,7 @@ export default function ForgotPasswordPage() {
         state: { flash: 'Password updated. Sign in with your new password.' },
       });
     });
-  };
+  }
 
   return (
     <div className="page auth-page">

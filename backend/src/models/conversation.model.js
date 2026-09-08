@@ -1,23 +1,13 @@
-// -----------------------------------------------------------------------------
-// conversation.model.js
+// SQL for `conversations` and `messages`.
 //
-// SQL for `conversations` and `messages` (spec §6, Phase 10). No req/res here.
-//
-// Scoping rule that matters:
-//   - a signed-in customer's conversation row has customer_id = 'CUST...'
-//   - an anonymous visitor's conversation row has customer_id IS NULL
-// Every lookup pins one or the other, so an anonymous caller can never address
-// a customer's conversation by guessing its session_id, and a customer never
-// sees a NULL/other conversation.
-// -----------------------------------------------------------------------------
+// Scoping rule: a signed-in customer's conversation row has customer_id set, an
+// anonymous visitor's has customer_id IS NULL. Every lookup pins one or the
+// other, so a visitor can't reach a customer's conversation by guessing its
+// session_id, and vice versa.
 
 import { query, queryOne, withTransaction } from '../config/db.js';
 
-/**
- * Most recent conversation for this identity + browser session, or null.
- * customerId null  -> match the anonymous (customer_id IS NULL) row.
- * customerId set   -> match that customer's row only.
- */
+// Most recent conversation for this identity + browser session, or null.
 export function findConversation({ customerId = null, sessionId }) {
   if (customerId) {
     return queryOne(
@@ -39,7 +29,6 @@ export function findConversation({ customerId = null, sessionId }) {
   );
 }
 
-/** Insert a fresh conversation row and return its id. */
 export async function createConversation({ customerId = null, sessionId }) {
   const rows = await query(
     `INSERT INTO conversations (customer_id, session_id) VALUES (?, ?)`,
@@ -48,11 +37,8 @@ export async function createConversation({ customerId = null, sessionId }) {
   return rows.insertId;
 }
 
-/**
- * The last `limit` user/bot messages of a conversation, returned OLDEST-FIRST
- * so they can be replayed to the model in order. `limit` is coerced to a small
- * integer and inlined (mysql2 `execute` rejects a bound LIMIT on some servers).
- */
+// Last `limit` user/bot messages, oldest-first for replay to the model. `limit`
+// is clamped and inlined — mysql2 execute() rejects a bound LIMIT on some servers.
 export async function listRecentMessages(conversationId, limit) {
   const n = Math.min(Math.max(parseInt(limit, 10) || 0, 0), 100);
   if (n === 0) return [];
@@ -67,7 +53,7 @@ export async function listRecentMessages(conversationId, limit) {
   return rows.reverse();
 }
 
-/** A conversation's messages oldest-first, for GET /api/chat/history. */
+// Oldest-first, for GET /api/chat/history.
 export async function listMessages(conversationId, limit) {
   const n = Math.min(Math.max(parseInt(limit, 10) || 0, 1), 200);
   return query(
@@ -80,10 +66,8 @@ export async function listMessages(conversationId, limit) {
   );
 }
 
-/**
- * Persist one user turn + the bot's reply as an all-or-nothing unit, and bump
- * the conversation's updated_at so "most recent conversation" ordering holds.
- */
+// One user turn + the bot reply as an all-or-nothing unit; bump updated_at so
+// "most recent conversation" ordering holds.
 export function recordExchange(conversationId, userMessage, botMessage) {
   return withTransaction(async (conn) => {
     await conn.execute(

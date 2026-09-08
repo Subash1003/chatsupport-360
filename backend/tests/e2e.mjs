@@ -1,21 +1,16 @@
-// -----------------------------------------------------------------------------
-// tests/e2e.mjs
+// Full end-to-end functionality check: exercises every backend route and the
+// cross-cutting behaviour (CORS, helmet, rate-limit shape, auth codes, isolation,
+// error envelopes, conversation memory).
 //
-// Full end-to-end functionality check: exercises EVERY backend route and the
-// cross-cutting behaviour (CORS, helmet, rate-limit shape, auth codes,
-// isolation, error envelopes, conversation memory).
-//
-//   node tests/e2e.mjs                 # backend on :5000, log at /tmp/e2e-backend.log
+//   node tests/e2e.mjs                 # backend on :5000, log at <tmp>/e2e-backend.log
 //   node tests/e2e.mjs <logPath> <baseUrl>
 //
-// The backend MUST have been started with stdout redirected to <logPath> so this
-// script can read the OTP the console email transport prints (OTPs are stored
-// only as a hash, so there is no other way to complete signup / reset in a test).
+// The backend must be started with stdout redirected to <logPath> so this script
+// can read the OTP the console email transport prints — OTPs are stored only as a
+// hash, so there's no other way to complete signup / reset in a test.
 //
 // Creates one throwaway customer + a few leads/conversations and cleans them up
-// at the end (your own CUST1004/CUST1005 data and chat history are untouched).
-// Exit 0 iff every check passes.
-// -----------------------------------------------------------------------------
+// at the end. Exit 0 iff every check passes.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -125,9 +120,9 @@ function check(name, pass, detail = '') {
   results.push({ section, name, pass: !!pass, detail });
   console.log(`  ${pass ? 'PASS' : 'FAIL'}  ${name}${pass || !detail ? '' : `\n        ${detail}`}`);
 }
-// For checks that can't run because the LLM provider is quota-limited right now
-// (Groq free tier). Recorded as SKIP, not FAIL — the chat path is covered by
-// tests/phase13.mjs and tests/rag-eval.mjs.
+// For checks that can't run because the LLM provider is quota-limited right now.
+// Recorded as SKIP, not FAIL — the chat path is also covered by phase13.mjs and
+// rag-eval.mjs.
 function llmCheck(name, resp, assertFn, detail = '') {
   const code = resp?.json?.error?.code;
   if (resp?.status === 429 || code === 'LLM_RATE_LIMITED' || code === 'LLM_TIMEOUT') {

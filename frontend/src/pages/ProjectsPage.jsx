@@ -1,8 +1,4 @@
-// -----------------------------------------------------------------------------
-// ProjectsPage.jsx
-//
-// GET /api/customer/projects -> the caller's own projects only.
-// -----------------------------------------------------------------------------
+// GET /api/customer/projects — the caller's own projects only.
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';

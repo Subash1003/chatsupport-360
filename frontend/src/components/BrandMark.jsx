@@ -1,10 +1,5 @@
-// -----------------------------------------------------------------------------
-// BrandMark.jsx
-//
-// The round 360 Degree Info badge. Used as the assistant's identity in the chat
-// header, the message avatars, the empty state, and the auth cards.
-// Size: 'sm' | 'md' | 'lg'.
-// -----------------------------------------------------------------------------
+// The round 360 Degree Info badge — the assistant's identity in the chat header,
+// message avatars, empty state and auth cards. size: 'sm' | 'md' | 'lg'.
 
 import logoRound from '../assets/logo-round.png';
 

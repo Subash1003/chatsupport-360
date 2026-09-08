@@ -1,10 +1,6 @@
-// -----------------------------------------------------------------------------
-// ChatInput.jsx
-//
-// The composer. Enter sends, Shift+Enter makes a newline. Auto-grows with the
-// text. Disabled while a reply is pending. `value`/`onChange` are controlled by
-// ChatPage so an example chip can prefill it.
-// -----------------------------------------------------------------------------
+// The composer. Enter sends, Shift+Enter is a newline, auto-grows with the text,
+// disabled while a reply is pending. value/onChange are controlled by ChatPage so
+// an example chip can prefill it.
 
 import { useEffect, useRef } from 'react';
 
@@ -15,7 +11,6 @@ const MAX_CHARS = 4000;
 export default function ChatInput({ value, onChange, onSend, disabled }) {
   const ref = useRef(null);
 
-  // Auto-grow.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;

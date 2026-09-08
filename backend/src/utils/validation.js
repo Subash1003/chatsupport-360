@@ -1,13 +1,7 @@
-// -----------------------------------------------------------------------------
-// validation.js
-//
-// Hand-written input checks (no express-validator dependency). Each helper
-// either returns a cleaned value or throws a 400 VALIDATION_ERROR that the
-// global error handler formats into the standard failure envelope.
-//
-// Controllers call these before touching any service, so services can assume
-// their inputs are already shaped correctly.
-// -----------------------------------------------------------------------------
+// Hand-written input checks (no express-validator). Each helper returns a cleaned
+// value or throws a 400 VALIDATION_ERROR that the global error handler formats.
+// Controllers run these before calling any service, so services can trust their
+// inputs.
 
 function fail(message) {
   const err = new Error(message);
@@ -16,10 +10,9 @@ function fail(message) {
   throw err;
 }
 
-// Good enough for a signup form. Not trying to be RFC 5322.
+// Good enough for a signup form; not RFC 5322.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Ensure req.body is an object and the named fields are present + non-empty. */
 export function requireBody(body, fields) {
   if (!body || typeof body !== 'object') fail('Request body must be JSON.');
   for (const field of fields) {
@@ -30,7 +23,6 @@ export function requireBody(body, fields) {
   }
 }
 
-/** Trim + lowercase, then sanity-check shape and length (column is VARCHAR(190)). */
 export function normaliseEmail(raw) {
   const email = String(raw).trim().toLowerCase();
   if (!EMAIL_RE.test(email) || email.length > 190) {
@@ -39,7 +31,7 @@ export function normaliseEmail(raw) {
   return email;
 }
 
-/** Password policy: 8-100 chars, at least one letter and one digit. */
+// 8-100 chars, at least one letter and one digit.
 export function validatePassword(raw) {
   const pw = String(raw);
   if (pw.length < 8 || pw.length > 100) {
@@ -51,14 +43,13 @@ export function validatePassword(raw) {
   return pw;
 }
 
-/** OTP must be exactly six digits. */
 export function validateOtpFormat(raw) {
   const otp = String(raw).trim();
   if (!/^[0-9]{6}$/.test(otp)) fail('The code must be 6 digits.');
   return otp;
 }
 
-/** A positive integer id taken from a URL param (e.g. /projects/:id). */
+// Positive integer id from a URL param, e.g. /projects/:id.
 export function validateNumericId(raw, label = 'id') {
   const value = String(raw).trim();
   const n = Number(value);
@@ -68,25 +59,21 @@ export function validateNumericId(raw, label = 'id') {
   return n;
 }
 
-/** Chat message: must be a string, non-empty after trim, within the model budget. */
 export function validateChatMessage(raw, maxChars = 4000) {
   if (typeof raw !== 'string') fail('"message" must be a string.');
   const text = raw.trim();
   if (text === '') fail('"message" is required.');
-  if (text.length > maxChars) {
-    fail(`"message" must be at most ${maxChars} characters.`);
-  }
+  if (text.length > maxChars) fail(`"message" must be at most ${maxChars} characters.`);
   return text;
 }
 
-/** A customer id as issued by id_counters: 'CUST' + 3-10 digits. */
+// Customer id as issued by id_counters: 'CUST' + 3-10 digits.
 export function validateCustomerId(raw, label = 'customer_id') {
   const value = String(raw).trim();
   if (!/^CUST[0-9]{3,10}$/.test(value)) fail(`Invalid ${label}.`);
   return value;
 }
 
-/** Support-ticket priority. Defaults to 'medium' when absent/blank. */
 const TICKET_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
 export function validatePriority(raw, fallback = 'medium') {
   if (raw === undefined || raw === null || String(raw).trim() === '') return fallback;
@@ -97,7 +84,7 @@ export function validatePriority(raw, fallback = 'medium') {
   return value;
 }
 
-/** Browser-generated chat session key: 8-100 chars, url-safe set. Column is VARCHAR(100). */
+// Browser-generated chat session key. Column is VARCHAR(100).
 export function validateSessionId(raw, label = 'session_id') {
   const value = String(raw).trim();
   if (value === 'undefined' || value === 'null') fail(`"${label}" is required.`);
@@ -105,7 +92,6 @@ export function validateSessionId(raw, label = 'session_id') {
   return value;
 }
 
-/** Display name: 2-120 chars (column is VARCHAR(120)). */
 export function validateName(raw) {
   const name = String(raw).trim();
   if (name.length < 2 || name.length > 120) {
@@ -114,7 +100,6 @@ export function validateName(raw) {
   return name;
 }
 
-/** Required free text (e.g. a lead's project description). Trimmed, length-checked. */
 export function validateText(raw, { label = 'text', min = 1, max = 5000 } = {}) {
   const text = String(raw).trim();
   if (text.length < min || text.length > max) {
@@ -123,10 +108,7 @@ export function validateText(raw, { label = 'text', min = 1, max = 5000 } = {}) 
   return text;
 }
 
-/**
- * Optional short free text (e.g. budget "8-12 lakhs", timeline "~3 months").
- * Returns null when absent/blank, otherwise the trimmed value, length-capped.
- */
+// Optional short free text (budget, timeline …). null when absent/blank.
 export function validateOptionalText(raw, { label = 'text', max = 100 } = {}) {
   if (raw === undefined || raw === null) return null;
   const text = String(raw).trim();

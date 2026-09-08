@@ -1,11 +1,5 @@
-// -----------------------------------------------------------------------------
-// customer.routes.js
-//
-// URL -> controller. Mounted at /api/customer in server.js.
-//
-// requireAuth is applied to the whole router, so every endpoint here needs a
-// valid Bearer token and every controller can rely on req.customer being set.
-// -----------------------------------------------------------------------------
+// Mounted at /api/customer. requireAuth guards the whole router, so every
+// controller can rely on req.customer.
 
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
@@ -27,6 +21,6 @@ router.get('/projects', listProjects);
 router.get('/projects/:id', getProject);
 router.get('/subscription', listSubscriptions);
 router.get('/tickets', listTickets);
-router.post('/tickets', raiseTicket); // raise a new support ticket
+router.post('/tickets', raiseTicket);
 
 export default router;

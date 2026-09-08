@@ -1,16 +1,7 @@
-// -----------------------------------------------------------------------------
-// ChatWindow.jsx
-//
 // The scrollable transcript. Auto-scrolls to the newest message by scrolling the
-// container itself (no sentinel node). Pure presentation; state lives in
-// ChatPage.
-//
-// The empty state adapts:
-//   - visitor / brand-new customer -> generic greeting + generic example chips
-//   - existing customer with data  -> personalised greeting + chips built from
-//     their own projects / tickets (ChatPage passes `greeting` + `suggestions`)
-// Clicking a chip sends it straight away (`onSuggestion`).
-// -----------------------------------------------------------------------------
+// container itself. Pure presentation; state lives in ChatPage, which also
+// supplies a personalised `greeting` + `suggestions` for a signed-in customer.
+// Clicking a chip sends it straight away.
 
 import { useEffect, useLayoutEffect, useRef } from 'react';
 

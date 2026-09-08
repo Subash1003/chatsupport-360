@@ -1,12 +1,5 @@
-// -----------------------------------------------------------------------------
-// customer.service.js
-//
-// Business logic for the authenticated-customer read APIs. No req/res here.
-//
-// Every function takes `customerId` as its first argument. That value always
-// originates from req.customer.customer_id (the verified JWT) — never from the
-// URL, query string or body (rule 1).
-// -----------------------------------------------------------------------------
+// Read APIs for the authenticated customer. Every function takes `customerId`
+// first; that value always comes from the verified JWT, never the URL/query/body.
 
 import * as customerModel from '../models/customer.model.js';
 import * as projectModel from '../models/project.model.js';
@@ -23,7 +16,7 @@ function httpError(statusCode, code, message) {
 export async function getProfile(customerId) {
   const profile = await customerModel.getProfileById(customerId);
   if (!profile) {
-    // Token is valid but the account row is gone (deleted since it was issued).
+    // Token valid, but the account row is gone (deleted since it was issued).
     throw httpError(404, 'CUSTOMER_NOT_FOUND', 'Customer account not found.');
   }
   return profile;
@@ -36,8 +29,8 @@ export function listProjects(customerId) {
 export async function getProjectDetail(customerId, projectId) {
   const project = await projectModel.findProjectForCustomer(projectId, customerId);
   if (!project) {
-    // 404, deliberately NOT 403: a project owned by another customer must look
-    // exactly like a project that does not exist (plan.md, Phase 4 acceptance).
+    // 404, not 403: someone else's project must be indistinguishable from one
+    // that doesn't exist.
     throw httpError(404, 'PROJECT_NOT_FOUND', 'Project not found.');
   }
   const tasks = await projectModel.listTasksForProject(projectId, customerId);
@@ -52,12 +45,7 @@ export function listTickets(customerId) {
   return ticketModel.listTicketsByCustomer(customerId);
 }
 
-/** Raise a support ticket for this customer. Returns the created row. */
 export async function raiseTicket(customerId, { subject, description, priority }) {
-  const ticketId = await ticketModel.createTicket(customerId, {
-    subject,
-    description,
-    priority,
-  });
+  const ticketId = await ticketModel.createTicket(customerId, { subject, description, priority });
   return ticketModel.findTicketForCustomer(ticketId, customerId);
 }

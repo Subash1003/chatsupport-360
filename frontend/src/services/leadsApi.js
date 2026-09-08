@@ -1,9 +1,4 @@
-// -----------------------------------------------------------------------------
-// leadsApi.js
-//
-// Wraps POST /api/leads (Phase 11). Public — no auth needed. Optional fields
-// (project_type / budget / timeline) are omitted when blank.
-// -----------------------------------------------------------------------------
+// Wraps POST /api/leads. Public — no auth. Optional fields are omitted when blank.
 
 import apiClient from './apiClient.js';
 

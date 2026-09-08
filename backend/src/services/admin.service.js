@@ -1,9 +1,5 @@
-// -----------------------------------------------------------------------------
-// admin.service.js
-//
-// The admin console: one hard-coded operator (ADMIN_EMAIL / ADMIN_PASSWORD in
-// .env) who can see every ticket and mark tickets resolved. No req/res here.
-// -----------------------------------------------------------------------------
+// The admin console: one hard-coded operator (ADMIN_EMAIL / ADMIN_PASSWORD) who
+// can see every ticket and mark tickets resolved.
 
 import env from '../config/env.js';
 import { signAdminToken } from '../utils/jwt.js';
@@ -32,8 +28,6 @@ export function listTickets() {
 
 export async function resolveTicket(ticketId) {
   const changed = await ticketModel.markTicketResolved(ticketId);
-  if (!changed) {
-    throw httpError(404, 'TICKET_NOT_FOUND', 'Ticket not found.');
-  }
+  if (!changed) throw httpError(404, 'TICKET_NOT_FOUND', 'Ticket not found.');
   return { ticket_id: ticketId, status: 'resolved' };
 }

@@ -1,13 +1,7 @@
-// -----------------------------------------------------------------------------
-// session.js
-//
-// Phase 12: a stable per-browser chat session id.
-//
-// The backend groups a visitor's chat turns by session_id (Phase 10) and scopes
-// it to identity, so an anonymous thread and a signed-in thread never mix even
-// with the same id. We still reset the id on login/logout so a shared computer
-// does not carry one person's thread into the next.
-// -----------------------------------------------------------------------------
+// A stable per-browser chat session id. The backend groups a visitor's turns by
+// session_id and scopes it to identity, so anon and signed-in threads never mix.
+// We still reset the id on login/logout so a shared computer doesn't carry one
+// person's thread into the next.
 
 const SESSION_KEY = 'cs_chatbot_session';
 

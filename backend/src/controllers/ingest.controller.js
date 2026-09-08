@@ -1,14 +1,6 @@
-// -----------------------------------------------------------------------------
-// ingest.controller.js
-//
-// Read the request -> call ingestion / retrieval services -> respond.
-// Every route here is behind devOnly (see ingest.routes.js).
-//
-// runSearch is a Phase 5 TEST AID: it proves the payload filters isolate
-// public from private and one customer from another, before Phase 7 builds the
-// real RAG retrieval. The filter is assembled server-side from the request's
-// `scope` + `customer_id`, mirroring what Phase 7 will derive from req.customer.
-// -----------------------------------------------------------------------------
+// Read the request → call ingestion / retrieval services → respond. Every route
+// here is behind devOnly. runSearch is a test aid: it proves the payload filters
+// isolate public from private, and one customer from another.
 
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { requireBody, validateCustomerId } from '../utils/validation.js';
@@ -23,6 +15,13 @@ import { search, buildFilter } from '../services/vectorStore.service.js';
 
 function sendOk(res, message, data) {
   res.status(200).json({ success: true, message, data });
+}
+
+function badRequest(message) {
+  const err = new Error(message);
+  err.statusCode = 400;
+  err.code = 'VALIDATION_ERROR';
+  return err;
 }
 
 // POST /api/ingest?scope=public|all   (default all)
@@ -57,18 +56,12 @@ export const runSearch = asyncHandler(async (req, res) => {
   const limit = Math.min(Math.max(Number(req.body.limit) || 5, 1), 20);
 
   if (scope !== 'public' && scope !== 'customer') {
-    const err = new Error('scope must be "public" or "customer".');
-    err.statusCode = 400;
-    err.code = 'VALIDATION_ERROR';
-    throw err;
+    throw badRequest('scope must be "public" or "customer".');
   }
   let customerId;
   if (scope === 'customer') {
     if (!req.body.customer_id) {
-      const err = new Error('customer_id is required when scope is "customer".');
-      err.statusCode = 400;
-      err.code = 'VALIDATION_ERROR';
-      throw err;
+      throw badRequest('customer_id is required when scope is "customer".');
     }
     customerId = validateCustomerId(req.body.customer_id);
   }

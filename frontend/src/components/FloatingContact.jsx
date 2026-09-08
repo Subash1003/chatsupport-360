@@ -1,9 +1,5 @@
-// -----------------------------------------------------------------------------
-// FloatingContact.jsx
-//
-// Sticky WhatsApp + call buttons in the bottom-right corner — the same pattern
-// as 360degreeinfo.com. Numbers are 360 Degree Info's public contact details.
-// -----------------------------------------------------------------------------
+// Sticky WhatsApp + call buttons, bottom-right — same pattern as
+// 360degreeinfo.com. Numbers are the company's public contact details.
 
 import Icon from './Icon.jsx';
 

@@ -1,10 +1,5 @@
-// -----------------------------------------------------------------------------
-// Navbar.jsx
-//
-// Sticky, blurred top bar. Links change with auth state:
-//   signed out -> Chat · Login · Sign up
-//   signed in  -> Chat · Account · <name chip> · Log out
-// -----------------------------------------------------------------------------
+// Sticky, blurred top bar. Links change with auth state: signed out shows
+// Chat · Login · Sign up; signed in shows Chat · Account · name · Log out.
 
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 

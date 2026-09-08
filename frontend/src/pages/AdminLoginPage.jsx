@@ -1,9 +1,5 @@
-// -----------------------------------------------------------------------------
-// AdminLoginPage.jsx
-//
-// Separate from the customer login. POST /api/admin/login -> stores the admin
-// token -> /admin.
-// -----------------------------------------------------------------------------
+// Separate from the customer login: POST /api/admin/login, store the admin token,
+// go to /admin.
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';

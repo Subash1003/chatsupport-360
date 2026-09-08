@@ -1,25 +1,11 @@
-// -----------------------------------------------------------------------------
-// error.middleware.js
-//
-// Two pieces of middleware that every Express app should have:
-//
-//   1. notFoundHandler  - runs when no route matched the request (404).
-//   2. errorHandler     - runs when any route/middleware throws or calls next(err).
-//
-// Why build this in Phase 1, before there is anything to fail?
-// Because later phases (MySQL down, Qdrant unreachable, LLM API timeout) will
-// throw, and we want ONE consistent place that decides what the user sees.
-// Rule 20 of the spec: never leak raw database/stack errors to the client.
-// -----------------------------------------------------------------------------
+// The app's 404 and error handlers. One consistent place decides what the client
+// sees; raw database/stack errors never leak out.
 
 import env from '../config/env.js';
 import logger from '../config/logger.js';
 
-/**
- * Catches any request that did not match a registered route.
- * Must be registered AFTER all real routes in server.js.
- */
-export function notFoundHandler(req, res, next) {
+// Register AFTER all real routes.
+export function notFoundHandler(req, res) {
   res.status(404).json({
     success: false,
     error: {
@@ -29,23 +15,11 @@ export function notFoundHandler(req, res, next) {
   });
 }
 
-/**
- * The final safety net.
- *
- * Express recognises this as an error handler ONLY because it takes four
- * arguments (err, req, res, next). Do not remove the unused `next` parameter.
- *
- * Usage from anywhere in the app:
- *   const err = new Error('Something specific went wrong');
- *   err.statusCode = 400;
- *   err.code = 'VALIDATION_ERROR';
- *   next(err);
- */
+// Express only treats this as an error handler because it takes four args — keep
+// the unused `next`.
 export function errorHandler(err, req, res, next) {
-  // ---------------------------------------------------------------------------
-  // Phase 9: normalise a few errors that arrive here without a statusCode/code.
-  // Left alone they would all surface as a generic 500.
-  // ---------------------------------------------------------------------------
+  // Body-parser / CORS errors arrive without a statusCode; map them so they
+  // don't all surface as a generic 500.
   if (err.type === 'entity.parse.failed') {
     err.statusCode = 400;
     err.code = 'INVALID_JSON';
@@ -62,7 +36,6 @@ export function errorHandler(err, req, res, next) {
 
   const statusCode = err.statusCode || 500;
 
-  // Always log the full error on the server, where only you can see it.
   logger.error(
     { err, reqId: req.id, method: req.method, url: req.originalUrl },
     `[error] ${req.method} ${req.originalUrl}`
@@ -72,13 +45,11 @@ export function errorHandler(err, req, res, next) {
     success: false,
     error: {
       code: err.code || 'INTERNAL_SERVER_ERROR',
-      // For a 500 we deliberately send a generic message. Internal details
-      // (SQL text, connection strings, stack traces) must never reach the client.
+      // Generic text for a 500 — no SQL, connection strings or stack traces.
       message:
         statusCode === 500
           ? 'Something went wrong. Please try again later.'
           : err.message,
-      // The stack is included only in development, purely to help you debug.
       ...(env.isProduction ? {} : { stack: err.stack }),
     },
   });

@@ -1,11 +1,5 @@
-// -----------------------------------------------------------------------------
-// auth.routes.js
-//
-// URL -> controller. No logic here. Mounted at /api/auth in server.js.
-// All seven endpoints are POST and unauthenticated (they are how you get a
-// token in the first place). auth.middleware.js is applied by OTHER route
-// files in later phases.
-// -----------------------------------------------------------------------------
+// Mounted at /api/auth. Every endpoint is POST and unauthenticated — this is how
+// you get a token in the first place.
 
 import { Router } from 'express';
 import {

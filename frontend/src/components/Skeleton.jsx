@@ -1,9 +1,4 @@
-// -----------------------------------------------------------------------------
-// Skeleton.jsx
-//
-// Shimmer placeholders for data that is loading. `lines` renders stacked bars;
-// `card` renders a taller block. Used by the account / project pages.
-// -----------------------------------------------------------------------------
+// Shimmer placeholders while data loads. Used by the account / project pages.
 
 export function SkeletonLines({ count = 3, widths = ['100%', '80%', '60%'] }) {
   return (

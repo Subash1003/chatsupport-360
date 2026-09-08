@@ -1,10 +1,5 @@
-// -----------------------------------------------------------------------------
-// LoginPage.jsx
-//
-// POST /api/auth/login -> { token, customer_id, email, name }. On success we
-// hand the payload to AuthContext.login() and go where the user was headed
-// (ProtectedRoute stashes that in location.state.from), else /chat.
-// -----------------------------------------------------------------------------
+// On success, hand the payload to AuthContext.login() and go where the user was
+// headed (ProtectedRoute stashes that in location.state.from), else /chat.
 
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';

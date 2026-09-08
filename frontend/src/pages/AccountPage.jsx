@@ -1,11 +1,6 @@
-// -----------------------------------------------------------------------------
-// AccountPage.jsx
-//
-// Profile + subscriptions + a ticket summary for the signed-in customer.
-// Every call is GET /api/customer/* with the JWT attached by apiClient; the
-// backend filters on req.customer.customer_id, so this only ever shows the
-// caller's own data.
-// -----------------------------------------------------------------------------
+// Profile + subscriptions + a ticket summary for the signed-in customer. The
+// backend filters every /api/customer/* call on the JWT's customer_id, so this
+// only ever shows the caller's own data.
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';

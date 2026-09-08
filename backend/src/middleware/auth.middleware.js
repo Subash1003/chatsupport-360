@@ -1,19 +1,11 @@
-// -----------------------------------------------------------------------------
-// auth.middleware.js
+// Gate for protected routes. On success sets req.customer = { customer_id, email }
+// and nothing else — every controller and service reads the id from there, never
+// from the body/query/params or a client header.
 //
-// Gate for protected routes. On success it sets:
-//
-//     req.customer = { customer_id, email }
-//
-// and NOTHING else. From here on, every controller/service reads the customer
-// id from req.customer.customer_id — never from req.body / req.query /
-// req.params / a client header (rule 1).
-//
-// Distinct failure codes so the frontend can react correctly (spec §8):
-//   TOKEN_MISSING  - no Bearer token supplied
-//   TOKEN_EXPIRED  - well-formed token, past its exp
-//   TOKEN_INVALID  - malformed / bad signature / anything else
-// -----------------------------------------------------------------------------
+// Distinct failure codes so the frontend can react:
+//   TOKEN_MISSING  – no Bearer token
+//   TOKEN_EXPIRED  – well-formed token, past its exp
+//   TOKEN_INVALID  – malformed / bad signature / anything else
 
 import { verifyToken } from '../utils/jwt.js';
 
@@ -25,8 +17,7 @@ function authError(code, message) {
 }
 
 export function requireAuth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const [scheme, token] = header.split(' ');
+  const [scheme, token] = (req.headers.authorization || '').split(' ');
 
   if (scheme !== 'Bearer' || !token) {
     return next(authError('TOKEN_MISSING', 'Authentication required.'));
@@ -37,19 +28,13 @@ export function requireAuth(req, res, next) {
     decoded = verifyToken(token);
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      return next(
-        authError('TOKEN_EXPIRED', 'Your session has expired. Please log in again.')
-      );
+      return next(authError('TOKEN_EXPIRED', 'Your session has expired. Please log in again.'));
     }
     return next(authError('TOKEN_INVALID', 'Invalid authentication token.'));
   }
 
-  // Pin req.customer to exactly the two trusted claims.
-  req.customer = {
-    customer_id: decoded.customer_id,
-    email: decoded.email,
-  };
-
+  // Pin to exactly the two trusted claims.
+  req.customer = { customer_id: decoded.customer_id, email: decoded.email };
   next();
 }
 

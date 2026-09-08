@@ -1,18 +1,11 @@
-// -----------------------------------------------------------------------------
-// ingestion.service.js
+// The pipeline: read → clean → chunk → embed → upsert with metadata.
 //
-// The pipeline: read -> clean -> chunk -> embed -> upsert with metadata.
+// A "document" is { source, document_type, visibility, customer_id?, text }, and
+// comes from markdown files in data/knowledge/, the services/offers tables
+// (public), or the projects/tasks and support_tickets tables (private).
 //
-// A "document" is { source, document_type, visibility, customer_id?, text }.
-// Documents come from three places:
-//   - markdown files in backend/data/knowledge/   (company, faq, technology,
-//     pricing, policy; and private/<CUST>.md customer documents)
-//   - the services and offers tables               (public, already structured)
-//   - the projects/tasks and support_tickets tables (private, per customer)
-//
-// Each ingest function first DELETES the points it owns (by payload filter),
-// then re-adds them, so re-running is idempotent and never duplicates.
-// -----------------------------------------------------------------------------
+// Each ingest function first deletes the points it owns (by payload filter) then
+// re-adds them, so re-running is idempotent.
 
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -35,7 +28,7 @@ const KNOWLEDGE_DIR = path.resolve(
   '../../data/knowledge'
 );
 
-// ---- document builders ----------------------------------------------------
+// ---- document builders ----
 
 const PUBLIC_FILES = [
   { file: 'company.md', document_type: 'company' },
@@ -59,12 +52,7 @@ async function publicFileDocs() {
   for (const { file, document_type } of PUBLIC_FILES) {
     const text = await readIfPresent(path.join(KNOWLEDGE_DIR, file));
     if (text && text.trim()) {
-      docs.push({
-        source: `file:${file}`,
-        document_type,
-        visibility: 'public',
-        text,
-      });
+      docs.push({ source: `file:${file}`, document_type, visibility: 'public', text });
     }
   }
   return docs;
@@ -90,8 +78,7 @@ function offerDocs(rows) {
     visibility: 'public',
     text:
       `Offer: ${o.title}\n\n${o.description || ''}\n\n` +
-      `Discount: ${Number(o.discount || 0)}%. ` +
-      `Valid ${o.valid_from} to ${o.valid_until}.`,
+      `Discount: ${Number(o.discount || 0)}%. Valid ${o.valid_from} to ${o.valid_until}.`,
   }));
 }
 
@@ -149,15 +136,14 @@ async function privateFileDoc(customerId) {
   ];
 }
 
-// ---- the pipeline core ---------------------------------------------------
+// ---- pipeline core ----
 
 async function embedAndUpsert(docs) {
   const chunkTexts = [];
   const owner = []; // parallel to chunkTexts: { doc, index }
 
   for (const doc of docs) {
-    const chunks = chunkText(doc.text);
-    chunks.forEach((text, index) => {
+    chunkText(doc.text).forEach((text, index) => {
       chunkTexts.push(text);
       owner.push({ doc, index });
     });
@@ -187,9 +173,9 @@ async function embedAndUpsert(docs) {
   return { documents: docs.length, chunks: chunkTexts.length, points: items.length };
 }
 
-// ---- public API --------------------------------------------------------
+// ---- public API ----
 
-/** Company files + services + offers. Replaces every public point. */
+// Company files + services + offers. Replaces every public point.
 export async function ingestPublic() {
   await ensureCollection();
   await deleteByFilter(buildFilter({ scope: 'public' }));
@@ -199,25 +185,19 @@ export async function ingestPublic() {
     knowledge.getActiveOffers(),
   ]);
 
-  const docs = [
-    ...(await publicFileDocs()),
-    ...serviceDocs(services),
-    ...offerDocs(offers),
-  ];
+  const docs = [...(await publicFileDocs()), ...serviceDocs(services), ...offerDocs(offers)];
   return embedAndUpsert(docs);
 }
 
-/** Fast path: re-ingest only offer points (for when offers change). */
+// Fast path for when only offers change.
 export async function ingestOffers() {
   await ensureCollection();
-  await deleteByFilter({
-    must: [{ key: 'document_type', match: { value: 'offer' } }],
-  });
+  await deleteByFilter({ must: [{ key: 'document_type', match: { value: 'offer' } }] });
   const offers = await knowledge.getActiveOffers();
   return embedAndUpsert(offerDocs(offers));
 }
 
-/** One customer's private documents. Replaces every private point for them. */
+// One customer's private documents. Replaces every private point for them.
 export async function ingestCustomer(customerId) {
   await ensureCollection();
   await deleteByFilter(buildFilter({ scope: 'private', customerId }));
@@ -228,16 +208,12 @@ export async function ingestCustomer(customerId) {
     privateFileDoc(customerId),
   ]);
 
-  const docs = [
-    ...fileDoc,
-    ...projectDocs(customerId, projects),
-    ...ticketDocs(customerId, tickets),
-  ];
+  const docs = [...fileDoc, ...projectDocs(customerId, projects), ...ticketDocs(customerId, tickets)];
   const result = await embedAndUpsert(docs);
   return { customer_id: customerId, ...result };
 }
 
-/** Everything: public knowledge + every active customer's private docs. */
+// Public knowledge + every active customer's private docs.
 export async function ingestAll() {
   await ensureCollection();
   const publicResult = await ingestPublic();

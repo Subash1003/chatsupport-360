@@ -1,15 +1,7 @@
-// -----------------------------------------------------------------------------
-// ProtectedRoute.jsx
-//
-// Wrap a route element that needs a signed-in customer:
-//
-//   <Route path="/account" element={<ProtectedRoute><AccountPage/></ProtectedRoute>} />
-//
-// While AuthContext is still reading storage (`ready === false`) we render
-// nothing, so a logged-in user refreshing the page does not flash the login
-// screen. After that: authenticated -> children, otherwise -> /login (with the
-// attempted path remembered so we can send them back).
-// -----------------------------------------------------------------------------
+// Wraps a route that needs a signed-in customer. While AuthContext is still
+// reading storage (ready === false) we render nothing, so a logged-in user who
+// refreshes doesn't flash the login screen. Then: authenticated → children,
+// otherwise → /login with the attempted path remembered.
 
 import { Navigate, useLocation } from 'react-router-dom';
 
@@ -20,10 +12,8 @@ export default function ProtectedRoute({ children }) {
   const location = useLocation();
 
   if (!ready) return null;
-
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-
   return children;
 }

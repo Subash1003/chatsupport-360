@@ -1,10 +1,5 @@
-// -----------------------------------------------------------------------------
-// LeadForm.jsx
-//
-// Shown in the chat UI to visitors (not signed-in users). Posts to
-// POST /api/leads. Required: name, email, description.
-// Optional: project type, budget, timeline (free text).
-// -----------------------------------------------------------------------------
+// Shown in the chat UI to visitors. Posts to /api/leads. Required: name, email,
+// description; optional: project type, budget, timeline.
 
 import { useState } from 'react';
 

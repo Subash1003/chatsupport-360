@@ -1,11 +1,5 @@
-// -----------------------------------------------------------------------------
-// ingest.routes.js
-//
-// URL -> controller. Mounted at /api/ingest in server.js.
-//
-// devOnly is applied to the whole router: in production every route here is a
-// 404. These endpoints (re)build the Qdrant knowledge base.
-// -----------------------------------------------------------------------------
+// Mounted at /api/ingest. devOnly guards the whole router — every route here is
+// a 404 in production. These endpoints (re)build the Qdrant knowledge base.
 
 import { Router } from 'express';
 import { devOnly } from '../middleware/devOnly.middleware.js';
@@ -23,6 +17,6 @@ router.use(devOnly);
 router.post('/', runIngest);
 router.post('/offers', runIngestOffers);
 router.post('/customer', runIngestCustomer);
-router.post('/search', runSearch); // Phase 5 test aid; replaced by real retrieval in Phase 7
+router.post('/search', runSearch); // test aid — real retrieval lives in retrieval.service.js
 
 export default router;

@@ -1,10 +1,6 @@
-// -----------------------------------------------------------------------------
-// adminApi.js
-//
-// The admin console talks to /api/admin/* with its OWN axios instance so it
-// never picks up the customer JWT (and vice-versa). On a 401 the admin token
-// is cleared so the guard bounces back to /admin/login.
-// -----------------------------------------------------------------------------
+// The admin console talks to /api/admin/* with its own axios instance so it
+// never picks up the customer JWT (or vice versa). On a 401 the admin token is
+// cleared so the guard bounces back to /admin/login.
 
 import axios from 'axios';
 
@@ -31,8 +27,7 @@ client.interceptors.response.use(
     return Promise.reject({
       status: error.response?.status ?? 0,
       code: error.response?.data?.error?.code || error.code || 'NETWORK_ERROR',
-      message:
-        error.response?.data?.error?.message || error.message || 'Request failed.',
+      message: error.response?.data?.error?.message || error.message || 'Request failed.',
     });
   }
 );

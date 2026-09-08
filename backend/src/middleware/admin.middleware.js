@@ -1,10 +1,5 @@
-// -----------------------------------------------------------------------------
-// admin.middleware.js
-//
-// Gate for /api/admin/*. Verifies a Bearer token that was issued by
-// POST /api/admin/login (payload `{ role: 'admin', email }`). A customer token
-// (which has no `role`) is rejected with 403.
-// -----------------------------------------------------------------------------
+// Gate for /api/admin/*. Verifies a Bearer token issued by POST /api/admin/login
+// (payload { role: 'admin', email }). A customer token has no `role` and is 403'd.
 
 import { verifyToken } from '../utils/jwt.js';
 

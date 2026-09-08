@@ -1,17 +1,8 @@
-// -----------------------------------------------------------------------------
-// embedding.service.js
+// Text → vectors. Pluggable like email.service.js: callers use embedTexts() /
+// embedQuery(). A provider's `dim` is declared in code, never read from env, so
+// the Qdrant collection size and the provider can't drift apart.
 //
-// Turns text into vectors. Pluggable, like email.service.js: callers use
-// embedTexts() / embedQuery() and never touch a provider directly.
-//
-// To add a provider later:
-//   1. add an entry to PROVIDERS with { dim, async embed(texts, taskType) }
-//   2. set EMBEDDING_PROVIDER=<name> (and any key) in .env
-// The `dim` is declared here in code, never read from env, so the Qdrant
-// collection size and the provider cannot drift apart.
-//
-// Default provider: gemini  (text-embedding-004, 768 dims, free tier).
-// -----------------------------------------------------------------------------
+// Default: gemini (gemini-embedding-001, pinned to 768 dims).
 
 import env from '../config/env.js';
 import logger from '../config/logger.js';
@@ -29,18 +20,14 @@ const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
 const geminiProvider = {
   name: 'gemini',
-  // gemini-embedding-001 defaults to 3072 dims; we pin it to 768 via
-  // outputDimensionality on every request, so `dim` and the wire format cannot
-  // drift. Qdrant uses Cosine, so the (unnormalised) sub-3072 vectors rank fine.
+  // gemini-embedding-001 defaults to 3072 dims; outputDimensionality pins every
+  // request to 768. Qdrant uses cosine, so the un-normalised sub-3072 vectors
+  // still rank fine.
   dim: 768,
 
   async embed(texts, taskType) {
     if (!env.GEMINI_API_KEY) {
-      throw httpError(
-        500,
-        'EMBEDDING_NOT_CONFIGURED',
-        'GEMINI_API_KEY is not set. Add the Phase 5 values to backend/.env.'
-      );
+      throw httpError(500, 'EMBEDDING_NOT_CONFIGURED', 'GEMINI_API_KEY is not set.');
     }
 
     const model = env.EMBEDDING_MODEL || 'gemini-embedding-001';
@@ -69,7 +56,6 @@ const geminiProvider = {
           body: JSON.stringify(body),
         });
       } catch (cause) {
-        // Network-level failure. Log detail server-side, return a safe code.
         logger.error({ err: cause, module: 'embedding' }, '[embedding] gemini fetch failed');
         throw httpError(502, 'EMBEDDING_FAILED', 'The embedding service is unavailable.');
       }
@@ -80,7 +66,7 @@ const geminiProvider = {
           { module: 'embedding', status: res.status, detail: detail.slice(0, 500) },
           `[embedding] gemini ${res.status}`
         );
-        // 429 from Gemini = rate limit; surface it as-is so the caller can back off.
+        // Surface a 429 as-is so the caller can back off.
         const status = res.status === 429 ? 429 : 502;
         const code = res.status === 429 ? 'EMBEDDING_RATE_LIMITED' : 'EMBEDDING_FAILED';
         throw httpError(status, code, 'The embedding service rejected the request.');
@@ -101,9 +87,7 @@ const geminiProvider = {
   },
 };
 
-const PROVIDERS = {
-  gemini: geminiProvider,
-};
+const PROVIDERS = { gemini: geminiProvider };
 
 function activeProvider() {
   const provider = PROVIDERS[env.EMBEDDING_PROVIDER];
@@ -111,34 +95,23 @@ function activeProvider() {
     throw httpError(
       500,
       'EMBEDDING_PROVIDER_UNKNOWN',
-      `Unknown EMBEDDING_PROVIDER "${env.EMBEDDING_PROVIDER}". ` +
-        `Known: ${Object.keys(PROVIDERS).join(', ')}.`
+      `Unknown EMBEDDING_PROVIDER "${env.EMBEDDING_PROVIDER}". Known: ${Object.keys(PROVIDERS).join(', ')}.`
     );
   }
   return provider;
 }
 
-/** The dimension of the active provider's vectors. Used to size the collection. */
+// Dimension of the active provider's vectors — used to size the collection.
 export function embeddingDim() {
   return activeProvider().dim;
 }
 
-/**
- * Embed an array of documents for storage.
- * @param {string[]} texts
- * @returns {Promise<number[][]>}
- */
 export function embedTexts(texts) {
   if (!Array.isArray(texts) || texts.length === 0) return Promise.resolve([]);
   return activeProvider().embed(texts, 'RETRIEVAL_DOCUMENT');
 }
 
-/**
- * Embed a single search query. Uses the QUERY task type, which Gemini optimises
- * differently from stored documents.
- * @param {string} text
- * @returns {Promise<number[]>}
- */
+// QUERY task type — Gemini optimises it differently from stored documents.
 export async function embedQuery(text) {
   const [vector] = await activeProvider().embed([String(text)], 'RETRIEVAL_QUERY');
   return vector;

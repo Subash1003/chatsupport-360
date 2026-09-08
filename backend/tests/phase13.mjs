@@ -1,20 +1,13 @@
-// -----------------------------------------------------------------------------
-// tests/phase13.mjs
+// Acceptance run: 10 scenarios end to end against a running backend. No test
+// framework — plain Node (built-in fetch) plus the jsonwebtoken dep the backend
+// already has, for the expired-token case.
 //
-// Phase 13 acceptance run: the 10 scenarios from plan.md, end to end against a
-// RUNNING backend. No test framework — plain Node 22 (built-in fetch) + the
-// `jsonwebtoken` dep the backend already has (for the expired-token case).
-//
-//   cd backend
 //   npm run dev                 # in another terminal
 //   node tests/phase13.mjs      # or:  node tests/phase13.mjs http://localhost:5000/api
 //
-// Exit code 0 = all passed, 1 = at least one failed.
-//
-// Needs the seeded database (schema.sql + seed.sql). Chat scenarios call the
-// real LLM, so the run takes ~1-2 min and needs LLM_API_KEY / QDRANT / GEMINI
-// configured. Chat calls are paced to stay under the Groq free-tier limit.
-// -----------------------------------------------------------------------------
+// Exit 0 = all passed. Needs the seeded database and LLM_API_KEY / QDRANT /
+// GEMINI configured; chat scenarios call the real LLM so a run takes ~1-2 min.
+// Chat calls are paced and retried once on a provider rate-limit.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

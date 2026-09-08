@@ -1,11 +1,6 @@
-// -----------------------------------------------------------------------------
-// FormField.jsx
-//
-// A labelled input row used by every auth form and the lead form. Pass
-// `as="textarea"` for a multi-line field. `error` renders an inline message and
-// a red border. Password fields (`type="password"`) get a show/hide eye toggle
-// automatically.
-// -----------------------------------------------------------------------------
+// A labelled input row used by every auth form and the lead form. `as="textarea"`
+// for a multi-line field; `error` renders an inline message and a red border;
+// password fields get a show/hide toggle automatically.
 
 import { useState } from 'react';
 

@@ -1,9 +1,5 @@
-// -----------------------------------------------------------------------------
-// adminToken.js
-//
 // The admin console has its own token, separate from the customer JWT.
-// Stored in localStorage; read by services/adminApi.js and AdminPage.
-// -----------------------------------------------------------------------------
+// Read by services/adminApi.js and AdminPage.
 
 const KEY = 'cs_chatbot_admin_token';
 
@@ -19,7 +15,7 @@ export function setAdminToken(token) {
   try {
     localStorage.setItem(KEY, token);
   } catch {
-    /* ignore */
+    // ignore
   }
 }
 
@@ -27,6 +23,6 @@ export function clearAdminToken() {
   try {
     localStorage.removeItem(KEY);
   } catch {
-    /* ignore */
+    // ignore
   }
 }

@@ -1,12 +1,6 @@
-// -----------------------------------------------------------------------------
-// SignupPage.jsx
-//
-// Single-step signup:
-//   name + email + password -> POST /api/auth/signup -> { token, ... } -> logged in
-//
-// The email-OTP steps from spec §8 are skipped: the backend deployment host
-// blocks outbound SMTP, so verification codes cannot be delivered.
-// -----------------------------------------------------------------------------
+// Single-step signup: name + email + password → /api/auth/signup → logged in.
+// The email-OTP steps are skipped because the deployment host blocks outbound
+// SMTP, so verification codes can't be delivered.
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -26,22 +20,20 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const submit = (e) => {
+  async function submit(e) {
     e.preventDefault();
     setBusy(true);
     setError('');
-    (async () => {
-      try {
-        const res = await signup({ name, email, password });
-        login(res.data);
-        navigate('/chat', { replace: true });
-      } catch (err) {
-        setError(err.message || 'Something went wrong.');
-      } finally {
-        setBusy(false);
-      }
-    })();
-  };
+    try {
+      const res = await signup({ name, email, password });
+      login(res.data);
+      navigate('/chat', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div className="page auth-page">

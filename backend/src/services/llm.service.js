@@ -1,20 +1,15 @@
-// -----------------------------------------------------------------------------
-// llm.service.js
+// Calls the chat model and returns a plain answer string. Pluggable like the
+// embedding and email services.
 //
-// Calls the chat model and returns a plain answer string. Pluggable, like
-// embedding.service.js and email.service.js.
+// The one provider shape implemented is OpenAI-compatible chat completions
+// (POST {base}/chat/completions) — Groq, OpenAI, DeepSeek, Together, OpenRouter
+// all speak it; switching is just LLM_BASE_URL + LLM_MODEL in .env.
 //
-// The only provider shape implemented is "OpenAI-compatible chat completions"
-// (POST {base}/chat/completions). Groq, OpenAI, Together, etc. all speak it;
-// switching is just LLM_BASE_URL + LLM_MODEL in .env.
-//
-// Failure handling (spec rule 9 — never leak a provider error body):
-//   missing key      -> 500 LLM_NOT_CONFIGURED
-//   timeout          -> 504 LLM_TIMEOUT
-//   429 from provider -> 429 LLM_RATE_LIMITED
-//   any other error  -> 502 LLM_FAILED
-// The real detail is logged server-side only.
-// -----------------------------------------------------------------------------
+// Failures never leak a provider error body:
+//   missing key       → 500 LLM_NOT_CONFIGURED
+//   timeout           → 504 LLM_TIMEOUT
+//   429 from provider → 429 LLM_RATE_LIMITED
+//   anything else      → 502 LLM_FAILED
 
 import env from '../config/env.js';
 import logger from '../config/logger.js';
@@ -29,11 +24,7 @@ function httpError(statusCode, code, message) {
 const openAICompatibleChat = {
   async complete({ messages, maxTokens, timeoutMs }) {
     if (!env.LLM_API_KEY) {
-      throw httpError(
-        500,
-        'LLM_NOT_CONFIGURED',
-        'LLM_API_KEY is not set. Add the Phase 6 values to backend/.env.'
-      );
+      throw httpError(500, 'LLM_NOT_CONFIGURED', 'LLM_API_KEY is not set.');
     }
 
     const controller = new AbortController();
@@ -91,8 +82,6 @@ const openAICompatibleChat = {
   },
 };
 
-// All of these speak the OpenAI "chat/completions" shape — only LLM_BASE_URL,
-// LLM_MODEL and LLM_API_KEY change between them.
 const PROVIDERS = {
   groq: openAICompatibleChat,
   openai: openAICompatibleChat,
@@ -113,10 +102,7 @@ function activeProvider() {
   return provider;
 }
 
-/**
- * @param {{role:string, content:string}[]} messages  built by utils/prompt.js
- * @returns {Promise<{reply:string, model:string, usage:object|null}>}
- */
+// messages is built by utils/prompt.js.
 export function generateChatReply(messages) {
   return activeProvider().complete({
     messages,
